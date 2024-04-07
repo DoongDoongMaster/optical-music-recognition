@@ -11,8 +11,10 @@ mkdir -p "$destination_folder"
 cp -r "$source_folder"/* "$destination_folder"
 
 sed -i 's/pitch/unpitched/g' "$destination_folder"/*
-sed -i 's/step/display-step/g' "$destination_folder"/*
-sed -i 's/octave/display-octave/g' "$destination_folder"/*
+# sed -i 's/<step>/<display-step>/g' "$destination_folder"/*
+sed -i 's/step>/display-step>/g' "$destination_folder"/*
+# sed -i 's/<octave>/<display-octave>/g' "$destination_folder"/*
+sed -i 's/octave>/display-octave>/g' "$destination_folder"/*
 
 rm -r "$source_folder"/*
 
