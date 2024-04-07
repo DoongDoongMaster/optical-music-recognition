@@ -25,5 +25,6 @@ CURSOR = "cursor"
 OMR = "omr-seq2seq"
 
 PITCH = "pitch"
+NOTE = "note"
 MULTI_CLASS = "multi-class"
 MULTI_LABEL = "multi-label"

@@ -4,7 +4,7 @@ import os
 
 import pandas as pd
 
-from constant.note import CODE2PITCH_NOTE
+from constant.note import CODE2NOTES
 from constant.path import DATA_FEATURE_PATH
 
 
@@ -61,9 +61,6 @@ class Util:
         print("shape:", arr_data.shape)
 
         result_dict = {}
-        for code, drum in CODE2PITCH_NOTE.items():
-            # print("--", code, drum)
-
+        for code, drum in CODE2NOTES.items():
             result_dict[drum] = [row[code] for row in arr_data]
-            print(result_dict[drum])
         return result_dict
