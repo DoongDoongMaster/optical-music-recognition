@@ -1,4 +1,4 @@
-from constant import DATA_TEST_PATH, MULTI_LABEL, PITCH, EXP, PNG
+from constant import DATA_TEST_PATH, MULTI_LABEL, PITCH, EXP, PNG, XML, RESULT_XML_PATH
 from data_processing import DataProcessing
 from feature_labeling import FeatureLabeling
 from model.multilabel_pitch_model import MultiLabelPitchModel
@@ -61,4 +61,10 @@ def create_musicxml_dummy():
     }
 
     # Create ElementTree and write to file
-    Note2XML.create_musicxml(note_data, "output.xml")
+    datetime = Util.get_datetime()
+    Note2XML.create_musicxml(
+        note_data, f"{RESULT_XML_PATH}/musicxml-{datetime}.{EXP[XML]}"
+    )
+
+
+create_musicxml_dummy()
