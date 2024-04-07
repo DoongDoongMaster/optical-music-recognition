@@ -3,15 +3,10 @@ from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
 
-from constant import (
-    EXP,
-    IMAGE_PATH,
-    PITCH,
-    PITCH_NOTE2CODE,
-    PITCH_NOTES,
-    PNG,
-    PREDICT_STD,
-)
+
+from constant.common import EXP, PITCH, PNG, PREDICT_STD
+from constant.note import PITCH_NOTE2CODE, PITCH_NOTES
+from constant.path import IMAGE_PATH
 from util import Util
 
 

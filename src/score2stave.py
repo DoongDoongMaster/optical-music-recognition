@@ -2,16 +2,8 @@ import os
 import cv2
 import numpy as np
 
-
-from constant import (
-    DATA_FEATURE_PATH,
-    EXP,
-    MULTI_LABEL,
-    PAD_STAVE,
-    PNG,
-    STAVE_HEIGHT,
-    STAVE_WIDTH,
-)
+from constant.common import EXP, PAD_STAVE, PNG, STAVE_HEIGHT, STAVE_WIDTH
+from constant.path import DATA_FEATURE_PATH
 from util import Util
 
 
@@ -66,7 +58,7 @@ class Score2Stave:
             x, y, w, h, _ = stats[i]
             # -- stave 인식
             if (
-                w > score_width * 0.1
+                w > score_width * 0.3
             ):  # -- 주로 마지막 stave인 경우, 한 마디인 경우가 있을 수 있음.
                 stave = biImg[y : y + h, x : x + w]
                 stave_list.append(stave)

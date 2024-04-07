@@ -1,17 +1,6 @@
-import os
 import numpy as np
-import pandas as pd
-from constant import (
-    DATA_FEATURE_PATH,
-    DATA_RAW_PATH,
-    EXP,
-    FEATURE,
-    MULTI_LABEL,
-    OSMD,
-    PAD_STAVE,
-    PNG,
-    STAVE,
-)
+from constant.common import EXP, FEATURE, MULTI_LABEL, PAD_STAVE, PNG
+from constant.path import DATA_RAW_PATH, OSMD
 from score2stave import Score2Stave
 from util import Util
 

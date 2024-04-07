@@ -1,42 +1,32 @@
 import os
+import glob
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
-import tensorflow as tf
 
-from constant import (
-    CHUNK_TIME_LENGTH,
-    MODEL_PATH,
-    MULTI_LABEL,
-    OMR,
-    PITCH_NOTES,
-    PTICH_HEIGHT,
-    STAVE_HEIGHT,
-)
+from constant.common import CHUNK_TIME_LENGTH, MULTI_LABEL, OMR, STAVE_HEIGHT
+from constant.note import PITCH_NOTES, PTICH_HEIGHT
+from constant.path import MODEL_PATH
 from feature_labeling import FeatureLabeling
 from score2stave import Score2Stave
 from show_result import ShowResult
 from util import Util
-import glob
-
-from keras.models import Model
 
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.optimizers import Adam
+from keras.models import Model
 from tensorflow.keras.layers import (
     Dense,
     LSTM,
-    Conv1D,
     Input,
     Bidirectional,
     Conv2D,
     MaxPooling2D,
     Reshape,
-    TimeDistributed,
     BatchNormalization,
-    GRU,
+    Dropout,
 )
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping
 
 
 class MultiLabelPitchModel:
@@ -84,28 +74,23 @@ class MultiLabelPitchModel:
         )(conv1_1)
         conv1_2 = BatchNormalization()(conv1_2)
         pool1 = MaxPooling2D(pool_size=(1, 3))(conv1_2)
-
-        # Second Convolutional Block
-        conv2_1 = Conv2D(
-            filters=32, kernel_size=(3, 3), activation="tanh", padding="same"
-        )(pool1)
-        conv2_1 = BatchNormalization()(conv2_1)
-        conv2_2 = Conv2D(
-            filters=32, kernel_size=(3, 3), activation="tanh", padding="same"
-        )(conv2_1)
-        conv2_2 = BatchNormalization()(conv2_2)
-        pool2 = MaxPooling2D(pool_size=(1, 3))(conv2_2)
+        dropout1 = Dropout(0.2)(pool1)
 
         # Reshape for RNN
-        reshape = Reshape((pool2.shape[1], pool2.shape[2] * pool2.shape[3]))(pool2)
+        reshape = Reshape((dropout1.shape[1], dropout1.shape[2] * dropout1.shape[3]))(
+            dropout1
+        )
 
         # BiGRU layers
         lstm1 = Bidirectional(LSTM(50, return_sequences=True))(reshape)
+
         lstm2 = Bidirectional(LSTM(50, return_sequences=True))(lstm1)
+
         lstm3 = Bidirectional(LSTM(50, return_sequences=True))(lstm2)
+        dropout4 = Dropout(0.2)(lstm3)
 
         # Output layer
-        output_layer = Dense(self.n_classes, activation="sigmoid")(lstm3)
+        output_layer = Dense(self.n_classes, activation="sigmoid")(dropout4)
 
         # Model compilation
         self.model = Model(inputs=input_layer, outputs=output_layer)

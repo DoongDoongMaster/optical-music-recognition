@@ -4,7 +4,8 @@ import os
 
 import pandas as pd
 
-from constant import CODE2PITCH_NOTE, DATA_FEATURE_PATH
+from constant.note import CODE2PITCH_NOTE
+from constant.path import DATA_FEATURE_PATH
 
 
 class Util:

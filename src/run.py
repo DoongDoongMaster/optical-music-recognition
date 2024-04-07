@@ -1,7 +1,8 @@
-from constant import DATA_TEST_PATH, MULTI_LABEL, PITCH, EXP, PNG, XML, RESULT_XML_PATH
-from data_processing import DataProcessing
-from feature_labeling import FeatureLabeling
+from constant.common import EXP, MULTI_LABEL, PITCH, PNG, XML
+from constant.path import DATA_TEST_PATH, RESULT_XML_PATH
 from model.multilabel_pitch_model import MultiLabelPitchModel
+from feature_labeling import FeatureLabeling
+from data_processing import DataProcessing
 from note2xml import Note2XML
 from util import Util
 
@@ -15,7 +16,7 @@ def process_all_data():
     FeatureLabeling.process_all_feature2label()
 
 
-multilabel_pitch_model = MultiLabelPitchModel(40, 0.00001, 32, MULTI_LABEL, PITCH)
+multilabel_pitch_model = MultiLabelPitchModel(40, 0.001, 32, MULTI_LABEL, PITCH)
 
 
 def train_model():
@@ -42,6 +43,11 @@ def predict_model():
         multilabel_pitch_model.predict_score(f"{file_path}")
 
 
+# process_all_data()
+train_model()
+predict_model()
+
+
 # ======================== note2xml ===========================
 def create_musicxml_dummy():
     note_data = {
@@ -65,6 +71,3 @@ def create_musicxml_dummy():
     Note2XML.create_musicxml(
         note_data, f"{RESULT_XML_PATH}/musicxml-{datetime}.{EXP[XML]}"
     )
-
-
-create_musicxml_dummy()

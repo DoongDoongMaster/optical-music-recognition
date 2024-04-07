@@ -1,54 +1,17 @@
-# ================================ path ================================
-DATA_PATH = f"../data"
-MODEL_PATH = f"../model"
-IMAGE_PATH = f"../images/"
-RESULT_XML_PATH = f"../result-xml/"
-
-DATA_FEATURE_PATH = f"{DATA_PATH}/processed-feature"
-DATA_RAW_PATH = f"{DATA_PATH}/raw"
-DATA_TEST_PATH = f"{DATA_PATH}/test"
-
-OSMD = "osmd-dataset-v1.0.0"
-
-STAVE = "stave"
-PAD_STAVE = "pad-stave"
-FEATURE = "feature"
-LABELED_FEATURE = "labeled-feature"
-CURSOR = "cursor"
-
-OMR = "omr-seq2seq"
-
-PITCH = "pitch"
-MULTI_CLASS = "multi-class"
-MULTI_LABEL = "multi-label"
-
-# ================================ data ================================
-STAVE_HEIGHT = 120
-STAVE_WIDTH = 1000
-
-# -- note좌우 pad 크기 [ex. note width 20 중에, 8 pad * 2 -> 4px]
-NOTE_PAD = 2
-
-# -- chunk length - model에 넣기 전 dataset 가공 시
-CHUNK_TIME_LENGTH = 10
-
-PREDICT_STD = 0.5
-
-# -- extension
-PNG = "PNG"
-XML = "XML"
-JSON = "JSON"
-CSV = "CSV"
-EXP = {PNG: "png", XML: "xml", JSON: "json", CSV: "csv"}
-
-
-# ================================ label ================================
 # -- rest
 REST_QUARTER = "REST_QUARTER"
 REST_EIGHTH = "REST_EIGHTH"
 REST_HALF = "REST_HALF"
 REST_WHOLE = "REST_WHOLE"
 REST_16th = "REST_16th"
+
+REST_NOTES = [
+    REST_QUARTER,
+    REST_EIGHTH,
+    REST_HALF,
+    REST_WHOLE,
+    REST_16th,
+]
 
 # -- pitch
 PITCH_NOTES = [
@@ -62,12 +25,8 @@ PITCH_NOTES = [
     "G5",
     "A5",
     "B5",
-    REST_QUARTER,
-    REST_EIGHTH,
-    REST_HALF,
-    REST_WHOLE,
-    REST_16th,
-]
+] + REST_NOTES
+
 PTICH_HEIGHT = len(PITCH_NOTES)
 # {0: 'A3', 1: 'B3', 2: 'C4', 3: 'D4', 4: 'E4', 5: 'F4', 6: 'G4', 7: 'A4', 8: 'B4', 9: 'C5', 10: 'D5', 11: 'E5', 12: 'F5', 13: 'G5', 14: 'A5', 15: 'B5', 16: 'C6'}
 CODE2PITCH_NOTE = {index: note for index, note in enumerate(PITCH_NOTES)}
@@ -86,11 +45,7 @@ DURATION_NOTES = [
     2.000,
     3.000,
     4.000,
-    REST_QUARTER,
-    REST_EIGHTH,
-    REST_HALF,
-    REST_WHOLE,
-]
+] + REST_NOTES
 DURATION_HEIGHT = len(DURATION_NOTES)
 # {0: 0.25, 1: 0.375, 2: 0.5, 3: 0.75, 4: 1.0, 5: 1.5, 6: 2.0, 7: 3.0, 8: 4.0, 9: 'REST_QUARTER', 10: 'REST_EIGHTH', 11: 'REST_HALF', 12: 'REST_WHOLE'}
 CODE2DURATION_NOTE = {index: note for index, note in enumerate(DURATION_NOTES)}
