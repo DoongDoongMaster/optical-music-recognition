@@ -4,7 +4,16 @@ import numpy as np
 import pandas as pd
 
 from constant.common import CHUNK_TIME_LENGTH, MULTI_LABEL, OMR, STAVE_HEIGHT
-from constant.note import PITCH_NOTES, PTICH_HEIGHT
+from constant.note import (
+    CODE2NOTES,
+    DURATIONS,
+    DURATIONS2TYPE,
+    NOTES,
+    NOTES_HEIGHT,
+    PITCHS,
+    REST2DURATION,
+    REST_NOTES,
+)
 from constant.path import MODEL_PATH
 from feature_labeling import FeatureLabeling
 from score2stave import Score2Stave
@@ -29,7 +38,7 @@ from tensorflow.keras.layers import (
 )
 
 
-class MultiLabelPitchModel:
+class MultiLabelNoteModel:
     def __init__(
         self,
         training_epochs,
@@ -58,7 +67,7 @@ class MultiLabelPitchModel:
 
         self.n_rows = CHUNK_TIME_LENGTH
         self.n_columns = STAVE_HEIGHT
-        self.n_classes = PTICH_HEIGHT
+        self.n_classes = NOTES_HEIGHT
         self.opt_learning_rate = 0.01
 
     def create_model(self):
@@ -83,9 +92,7 @@ class MultiLabelPitchModel:
 
         # BiGRU layers
         lstm1 = Bidirectional(LSTM(50, return_sequences=True))(reshape)
-
         lstm2 = Bidirectional(LSTM(50, return_sequences=True))(lstm1)
-
         lstm3 = Bidirectional(LSTM(50, return_sequences=True))(lstm2)
         dropout4 = Dropout(0.2)(lstm3)
 
@@ -133,11 +140,10 @@ class MultiLabelPitchModel:
     def create_dataset(self):
         combined_df = FeatureLabeling.load_all_labeled_feature_file()
         print("-------------------------")
-        print(combined_df)
-        feature_df, label_df = MultiLabelPitchModel.get_x_y(MULTI_LABEL, combined_df)
+        feature_df, label_df = MultiLabelNoteModel.get_x_y(MULTI_LABEL, combined_df)
 
-        X = MultiLabelPitchModel.split_x_data(feature_df, self.n_rows)
-        y = MultiLabelPitchModel.split_data(label_df, self.n_rows)
+        X = MultiLabelNoteModel.split_x_data(feature_df, self.n_rows)
+        y = MultiLabelNoteModel.split_data(label_df, self.n_rows)
 
         # -- split train, val, test
         x_train_temp, x_test, y_train_temp, y_test = train_test_split(
@@ -206,26 +212,28 @@ class MultiLabelPitchModel:
         biImg = np.transpose(biImg)
 
         # save_feature_csv("asdf", biImg, FEATURE) # -- 잘 됐는지 눈으로 확인하기 위함..
-        feature = MultiLabelPitchModel.split_x_data(biImg, self.n_rows)
+        feature = MultiLabelNoteModel.split_x_data(biImg, self.n_rows)
 
         predict_data = self.model.predict(feature)
         predict_data = predict_data.reshape((-1, self.n_classes))
         # -- threshold 0.5
         threshold_data = ShowResult.get_predict2threshold(predict_data, self.n_classes)
         result_dict = Util.transform_arr2dict(threshold_data)
-        ShowResult.show_label_dict_plot(result_dict)
+        # ShowResult.show_label_dict_plot(result_dict)
 
-        # 악보로 변환
+        # 악보로 시각화
         sheet_music = ShowResult.convert_to_sheet_music(result_dict)
-
-        # 시각화
         ShowResult.plot_sheet_music(sheet_music, stave_path)
+
+        # -- sequence data를 note data로 변환
+        note_data = MultiLabelNoteModel.transform_seqdata2notedata(threshold_data)
+        return note_data
 
     @staticmethod
     def get_x_y(label_type: str, feature_df: pd.DataFrame):
         if label_type in MULTI_LABEL:
-            X = feature_df.drop(PITCH_NOTES, axis=1).to_numpy()
-            y = feature_df[PITCH_NOTES].to_numpy()
+            X = feature_df.drop(NOTES, axis=1).to_numpy()
+            y = feature_df[NOTES].to_numpy()
             return X, y
 
     @staticmethod
@@ -243,3 +251,72 @@ class MultiLabelPitchModel:
 
         data = data[: num_chunks * chunk_size, :]
         return data.reshape((num_chunks, chunk_size, num_features))
+
+    @staticmethod
+    def transform_seqdata2notedata(seqdata):
+        # predict결과는 arr [[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, ..., 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],...]
+        # 이를 하나의 note로 변환해주는 코드
+
+        DIVISION = 32
+
+        notes_result = []
+        flag = False
+        for row in seqdata:
+            note_data = list(filter(lambda x: row[x] == 1.0, range(len(row))))
+            temp_pitch_list = []
+            temp_duration_list = []
+            temp_rest_list = []
+            for note in note_data:
+                # pitch 중에 하나라도 나옴. CODE2NOTES 0 ~ 9
+                # duration 중에 하나라도 나옴. 10 ~ 18
+                # rest 중에 하나라도 나옴. 19 ~ 23
+
+                if CODE2NOTES[note] in PITCHS:
+                    pitch = CODE2NOTES[note]
+                    temp_pitch_list.append(pitch)
+                    continue
+                if CODE2NOTES[note] in DURATIONS:
+                    duration = CODE2NOTES[note]
+                    temp_duration_list.append(duration)
+                    continue
+                if CODE2NOTES[note] in REST_NOTES:
+                    rest = CODE2NOTES[note]
+                    temp_rest_list.append(rest)
+                    continue
+
+            if len(temp_pitch_list) > 0 and len(temp_duration_list) > 0:
+                if flag is True:
+                    continue
+                flag = True
+                temp_duration = temp_duration_list[0]
+                for temp_pitch_idx, temp_pitch in enumerate(temp_pitch_list):
+                    temp_note = {
+                        "step": temp_pitch[0],
+                        "octave": int(temp_pitch[1:]),
+                        "duration": int(float(temp_duration) * DIVISION),
+                        "type": DURATIONS2TYPE[temp_duration],
+                    }
+                    if temp_pitch_idx > 0:  # 동시에 친 경우, chord 추가
+                        temp_note.update({"chord": True})
+                    notes_result.append(temp_note)
+                continue
+            if len(temp_rest_list) > 0:
+                if flag is True:
+                    continue
+                flag = True
+                temp_rest = temp_rest_list[0]
+                temp_duration = REST2DURATION[temp_rest]
+                temp_note = {
+                    "duration": int(float(temp_duration) * DIVISION),
+                    "type": DURATIONS2TYPE[temp_duration],
+                }
+                notes_result.append(temp_note)
+                continue
+
+            flag = False
+
+        new_note_data = {
+            "attributes": {"divisions": DIVISION, "beats": 4, "beat-type": 4},
+            "notes": notes_result,
+        }
+        return new_note_data

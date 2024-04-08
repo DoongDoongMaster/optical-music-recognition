@@ -5,31 +5,37 @@ import cv2
 import numpy as np
 import pandas as pd
 
-from constant import (
+
+from constant.common import (
     CSV,
     CURSOR,
-    DATA_FEATURE_PATH,
-    DATA_RAW_PATH,
     EXP,
     JSON,
     LABELED_FEATURE,
     MULTI_LABEL,
     NOTE_PAD,
-    OSMD,
-    PITCH_NOTE2CODE,
-    PITCH_NOTES,
     PNG,
-    PTICH_HEIGHT,
-    REST_EIGHTH,
-    REST_HALF,
-    REST_QUARTER,
-    REST_WHOLE,
     STAVE,
     STAVE_HEIGHT,
     STAVE_WIDTH,
     XML,
-    REST_16th,
 )
+from constant.note import (
+    NOTES,
+    NOTES2CODE,
+    NOTES_HEIGHT,
+    REST_EIGHTH,
+    REST_HALF,
+    REST_QUARTER,
+    REST_WHOLE,
+    TYPE_EIGHTH,
+    TYPE_HALF,
+    TYPE_QUARTER,
+    TYPE_WHOLE,
+    REST_16th,
+    TYPE_16th,
+)
+from constant.path import DATA_FEATURE_PATH, DATA_RAW_PATH, OSMD
 from util import Util
 
 
@@ -50,7 +56,7 @@ class FeatureLabeling:
             file_parent = f"{DATA_RAW_PATH}/{OSMD}/{title}"
 
             # 라벨 가져오기
-            pitch_list = FeatureLabeling.process_xml2label(file_parent)
+            pitch_list, duration_list = FeatureLabeling.process_xml2label(file_parent)
 
             # feature 가져오기
             csv_file_path = Util.get_all_files(f"{feature_path}", EXP[CSV])
@@ -74,13 +80,13 @@ class FeatureLabeling:
                     )
 
                 FeatureLabeling.process_feature2label(
-                    title, json_path, feature_df, pitch_list
+                    title, json_path, feature_df, pitch_list, duration_list
                 )
             except:
                 print("해당하는 png가 없습니다.!!", score_path)
 
     @staticmethod
-    def process_feature2label(title, json_path, feature_df, pitch_list):
+    def process_feature2label(title, json_path, feature_df, pitch_list, duration_list):
         """
         1. 먼저 가로로 label df 생성 후
         2. feature df + label df.T -> new csv
@@ -88,13 +94,12 @@ class FeatureLabeling:
         with open(json_path, "r") as json_file:
             data = json.load(json_file)
 
-        # shape: PTICH_HEIGHT x feature concat width(40700)
+        # shape: NOTES_HEIGHT x feature concat width(40700)
         label_df = pd.DataFrame(
-            0, index=range(PTICH_HEIGHT), columns=range(feature_df.shape[0])
+            0, index=range(NOTES_HEIGHT), columns=range(feature_df.shape[0])
         )
-        score_leftpad = data["measureList"][0][0][
-            "left"
-        ]  # -- stave는 score의 양옆 padding을 자르게 되니, 실제 cursor size와 달라짐. -> 맨 처음 마디의 x 만큼 sliding
+        # -- stave는 score의 양옆 padding을 자르게 되니, 실제 cursor size와 달라짐. -> 맨 처음 마디의 x 만큼 sliding
+        score_leftpad = data["measureList"][0][0]["left"]
 
         cursor_list = 0
         # cursorList-2d: row 마디 x col 노트
@@ -104,35 +109,35 @@ class FeatureLabeling:
             for j, point in enumerate(cursor):
                 # print("row: ", i, ", col: ", j)
 
-                top, left, height, width = FeatureLabeling.get_cursor_data(point)
+                _, left, _, width = FeatureLabeling.get_cursor_data(point)
                 left += i * STAVE_WIDTH - score_leftpad
                 # print(i, " : ", left)
 
                 # -- 노트 인식된 곳에, xml에서 뽑아온 걸 매핑
-                pitch_code = [0] * PTICH_HEIGHT
+                note_code = [0] * NOTES_HEIGHT
                 for pitch in pitch_list[cursor_list]:
-                    pitch_idx = PITCH_NOTE2CODE[pitch]
-                    pitch_code[pitch_idx] = 1
+                    pitch_idx = NOTES2CODE[pitch]
+                    note_code[pitch_idx] = 1
+                for duration in duration_list[cursor_list]:
+                    duration_idx = NOTES2CODE[duration]
+                    note_code[duration_idx] = 1
 
-                # print(pitch_code)
-
-                right_idx = min(
-                    left + width, label_df.shape[1]
-                )  # -- shape을 넘길 수 있어서
+                # -- shape을 넘길 수 있어서
+                right_idx = min(left + width, label_df.shape[1])
 
                 tmp_width = right_idx - left - 2 * NOTE_PAD
-                pitch_code_df = [pitch_code.copy() for _ in range(tmp_width)]
-                transpose_data = np.transpose(pitch_code_df)
+                note_code_df = [note_code.copy() for _ in range(tmp_width)]
+                transpose_data = np.transpose(note_code_df)
 
-                # label_df.loc[:, left+7: left+width-1-9 ] = transpose_data
                 label_df.loc[:, left + NOTE_PAD : left + width - 1 - NOTE_PAD] = (
                     transpose_data
                 )
                 cursor_list += 1
-                # print(label_df.loc[:, left: left + tmp_width-1])
             print("----------------------------")
 
-        print("pitch_list len: ", len(pitch_list), "cursor len:", cursor_list)
+        print(
+            f"pitch_list len: {len(pitch_list)}, duration_list len: {len(duration_list)}, cursor len: {cursor_list}"
+        )
 
         label_df = np.transpose(label_df)
 
@@ -158,10 +163,11 @@ class FeatureLabeling:
         try:
             xml_file_path = xml_file_path[0]
             pitch_list = FeatureLabeling.extract_pitch(xml_file_path)
-            # # 결과를 출력합니다.
+            duration_list = FeatureLabeling.extract_duration(xml_file_path)
+
             # for i, pitches in enumerate(pitch_list, 1):
             #     print(f"Note {i}: {' '.join(pitches)}")
-            return pitch_list
+            return pitch_list, duration_list
         except:
             print("해당하는 XML파일이 없습니다...!!", xml_file_path)
 
@@ -232,15 +238,15 @@ class FeatureLabeling:
             is_rest = note.find("rest") is not None
             if is_rest:
                 rest_element = note.find("type").text
-                if rest_element == "quarter":
+                if rest_element == TYPE_QUARTER:
                     pitch_list.append([REST_QUARTER])
-                elif rest_element == "eighth":
+                elif rest_element == TYPE_EIGHTH:
                     pitch_list.append([REST_EIGHTH])
-                elif rest_element == "half":
+                elif rest_element == TYPE_HALF:
                     pitch_list.append([REST_HALF])
-                elif rest_element == "whole":
+                elif rest_element == TYPE_WHOLE:
                     pitch_list.append([REST_WHOLE])
-                elif rest_element == "16th":
+                elif rest_element == TYPE_16th:
                     pitch_list.append([REST_16th])
                 continue
 
@@ -260,6 +266,110 @@ class FeatureLabeling:
                     pitch_list.append(chord_list)
 
         return pitch_list
+
+    @staticmethod
+    def extract_duration(xml_file: str):
+        """
+        1. duration 추출
+        !!!!! multilabel 없음. (동시에 여러 개 duration 없음.)
+
+        <chord/> <-  얘 있으면 동시에 친 거임
+        <unpitched>
+            <display-step>A</display-step>
+            <display-octave>5</display-octave>
+        </unpitched>
+
+        2. !!!!!!!!!!!!!예외!!!!!!!!!!!!!
+        - grace note 제외
+
+        3. 쉼표 추출
+        <note>
+            <rest/>
+            <duration>48</duration>
+            <type>quarter</type>
+        </note>
+
+        4. 셋잇단음표 예외처리... (임시)
+        - 그냥 생긴 걸로 4분 음표로 처리
+
+        output : [["0.500"], ["0.500"], ["1.000"], ["1.000"], ["0.750"], ["0.750"], ...]
+        """
+
+        def extract_division(xml_file: str):
+            root = FeatureLabeling.load_xml_data(xml_file)
+            if root is not None:
+                # 'divisions' 요소를 찾아서 값을 가져옴
+                divisions_element = root.find(".//divisions")
+
+                if divisions_element is not None:
+                    divisions_value = int(divisions_element.text)
+                    print("-- Divisions 값:", divisions_value)
+                    return divisions_value
+                else:
+                    print("-- !! no 'divisions' element.")
+            else:
+                print("-- !! XML parse error.")
+
+        # 셋잇단음표인 경우, 음표의 duration을 계산하는 함수
+        def calculate_triplet_duration(duration, actual_notes, normal_notes):
+            triplet_duration = (duration * actual_notes) / normal_notes
+            return triplet_duration
+
+        # -- duration = duration_value/division
+        division = extract_division(xml_file)
+        # XML 파일 파싱
+        root = FeatureLabeling.load_xml_data(xml_file)
+
+        duration_list = []
+
+        # 모든 <note> 엘리먼트를 찾습니다.
+        for note in root.iter("note"):
+            # <grace> 엘리먼트를 가진 <note> 엘리먼트인지 확인
+            is_grace = note.find("grace") is not None
+            if is_grace:
+                print("grace!")
+                continue
+
+            # <rest> 엘리먼트를 가진 <note> 엘리먼트인지 확인
+            is_rest = note.find("rest") is not None
+            if is_rest:
+                rest_element = note.find("type").text
+                if rest_element == TYPE_QUARTER:
+                    duration_list.append([REST_QUARTER])
+                elif rest_element == TYPE_EIGHTH:
+                    duration_list.append([REST_EIGHTH])
+                elif rest_element == TYPE_HALF:
+                    duration_list.append([REST_HALF])
+                elif rest_element == TYPE_WHOLE:
+                    duration_list.append([REST_WHOLE])
+                elif rest_element == TYPE_16th:
+                    duration_list.append([REST_16th])
+                continue
+
+            # <chord> 엘리먼트를 가진 <note> 엘리먼트인지 확인
+            is_chord = note.find("chord") is not None
+            # 만약 <chord> 엘리먼트를 가진 <note> 엘리먼트라면, pass
+            if is_chord:
+                continue
+
+            # 각 note 요소에서 셋잇단음표인 경우 음표의 duration 계산
+            duration_value = int(note.find("duration").text)
+            time_modification = note.find("time-modification")
+
+            if time_modification is not None:
+                actual_notes = int(time_modification.find("actual-notes").text)
+                normal_notes = int(time_modification.find("normal-notes").text)
+                triplet_duration_value = calculate_triplet_duration(
+                    duration_value, actual_notes, normal_notes
+                )
+                # print("셋잇단음표인 경우 음표의 duration:", triplet_duration)
+                duration = float(triplet_duration_value) / float(division)
+            else:
+                duration = float(duration_value) / float(division)
+            duration = f"{duration:.3f}"
+            duration_list.append([duration])
+
+        return duration_list
 
     @staticmethod
     def get_cursor_data(point):
@@ -362,7 +472,7 @@ class FeatureLabeling:
         -- dataframe 헤더 초기화
         -- [G5, A5, ..., REST,...]
         """
-        label_cols = PITCH_NOTES
+        label_cols = NOTES
         feature_cols = [f"{STAVE}-{i + 1}" for i in range(STAVE_HEIGHT)]
 
         # label + feature
