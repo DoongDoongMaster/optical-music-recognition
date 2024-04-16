@@ -28,3 +28,5 @@ PITCH = "pitch"
 NOTE = "note"
 MULTI_CLASS = "multi-class"
 MULTI_LABEL = "multi-label"
+
+AUGMENT = "augment"
