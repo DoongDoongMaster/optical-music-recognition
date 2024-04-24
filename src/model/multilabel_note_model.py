@@ -3,7 +3,14 @@ import glob
 import numpy as np
 import pandas as pd
 
-from constant.common import CHUNK_TIME_LENGTH, MULTI_LABEL, OMR, STAVE_HEIGHT
+from constant.common import (
+    AUGMENT_SET,
+    CHUNK_TIME_LENGTH,
+    DATASET_DF,
+    MULTI_LABEL,
+    OMR,
+    STAVE_HEIGHT,
+)
 from constant.note import (
     CODE2NOTES,
     DURATIONS,
@@ -140,10 +147,19 @@ class MultiLabelNoteModel:
     def create_dataset(self):
         combined_df = FeatureLabeling.load_all_labeled_feature_file()
         print("-------------------------")
-        feature_df, label_df = MultiLabelNoteModel.get_x_y(MULTI_LABEL, combined_df)
 
-        X = MultiLabelNoteModel.split_x_data(feature_df, self.n_rows)
-        y = MultiLabelNoteModel.split_data(label_df, self.n_rows)
+        feature_arr = np.empty((0, STAVE_HEIGHT))
+        label_arr = np.empty((0, NOTES_HEIGHT))
+
+        for aug in AUGMENT_SET.keys():
+            feature_df, label_df = MultiLabelNoteModel.get_x_y(
+                MULTI_LABEL, combined_df, aug
+            )
+            feature_arr = np.vstack((feature_arr, feature_df))
+            label_arr = np.vstack((label_arr, label_df))
+
+        X = MultiLabelNoteModel.split_x_data(feature_arr, self.n_rows)
+        y = MultiLabelNoteModel.split_data(label_arr, self.n_rows)
 
         # -- split train, val, test
         x_train_temp, x_test, y_train_temp, y_test = train_test_split(
@@ -230,10 +246,10 @@ class MultiLabelNoteModel:
         return note_data
 
     @staticmethod
-    def get_x_y(label_type: str, feature_df: pd.DataFrame):
+    def get_x_y(label_type: str, feature_df: pd.DataFrame, state: str):
         if label_type in MULTI_LABEL:
-            X = feature_df.drop(NOTES, axis=1).to_numpy()
-            y = feature_df[NOTES].to_numpy()
+            X = feature_df[DATASET_DF[state]].to_numpy()
+            y = feature_df[DATASET_DF["label"]].to_numpy()
             return X, y
 
     @staticmethod

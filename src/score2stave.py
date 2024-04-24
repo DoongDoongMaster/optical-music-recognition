@@ -1,8 +1,19 @@
+import json
 import os
 import cv2
 import numpy as np
 
-from constant.common import EXP, PAD_STAVE, PNG, STAVE_HEIGHT, STAVE_WIDTH
+from constant.common import (
+    AUGMENT,
+    EXP,
+    JSON,
+    KEY_MEASURE_LIST,
+    PAD_STAVE,
+    PNG,
+    STAVE,
+    STAVE_HEIGHT,
+    STAVE_WIDTH,
+)
 from constant.path import DATA_FEATURE_PATH
 from util import Util
 
@@ -25,16 +36,6 @@ class Score2Stave:
         return biImg
 
     @staticmethod
-    def get_score_data(score_path):
-        """
-        score의 binary img, size 얻기
-        return: binary img, height, width
-        """
-        biImg = Score2Stave.transform_img2binaryImg(score_path)
-        height, width = biImg.shape
-        return biImg, height, width
-
-    @staticmethod
     def extract_segment_from_score(biImg):
         """
         score에서 각 segment 추출
@@ -48,11 +49,64 @@ class Score2Stave:
         return cnt, labels, stats, centroids
 
     @staticmethod
-    def extract_stave_from_score(biImg, score_width, cnt, stats):
+    def extract_stave_from_score(biImg, stave_pos_data):
+        """
+        score에서 stave 추출
+        주의!! height는 정말 5선지 높이이기 때문에, 일정 offset만큼 늘려서 잘라줘야 함
+        """
+
+        """[...,
+            [
+            n번째 stave의 1번째 마디
+            {
+                "top": 2930,
+                "left": 50,
+                "height": 40,
+                "width": 274,
+                "timestamp": 91.20833333333333
+            },
+            n번째 stave의 2번째 마디
+            {
+                "top": 2930,
+                "left": 324.492,
+                "height": 40,
+                "width": 196,
+                "timestamp": 92.125
+            }
+            ],
+            ...]
+        """
+        stave_list = []
+        stave_stats_list = []
+        stave_pos_list = stave_pos_data[KEY_MEASURE_LIST]
+        for stave_pos in stave_pos_list:
+            # 맨 처음 마디와 끝 마디의 길이만큼 자르기 - 마디 한 개만 있는 경우도 상관 없음.
+            start_pos = stave_pos[0]
+            end_pos = stave_pos[-1]
+
+            x = round(start_pos["left"])
+
+            t_y = round((start_pos["top"] - STAVE_HEIGHT / 2))
+            y = max(t_y, 0)
+
+            h = STAVE_HEIGHT
+
+            w = round(end_pos["left"] + end_pos["width"] - start_pos["left"])
+
+            stave = biImg[y : y + h, x : x + w]
+            stave_list.append(stave)
+            stave_stats_list.append([x, y, w, h])
+
+        return stave_list, stave_stats_list
+
+    @staticmethod
+    def extract_stave_from_score_cv2(biImg, cnt, stats):
         """
         score에서 stave 추출
         """
+        score_width, _ = biImg.shape
         stave_list = []
+        stave_stats_list = []
         # -- idx 0은 배경이라 제외
         for i in range(1, cnt):
             x, y, w, h, _ = stats[i]
@@ -62,6 +116,7 @@ class Score2Stave:
             ):  # -- 주로 마지막 stave인 경우, 한 마디인 경우가 있을 수 있음.
                 stave = biImg[y : y + h, x : x + w]
                 stave_list.append(stave)
+                stave_stats_list.append([x, y, w, h])
 
         return stave_list
 
@@ -70,14 +125,21 @@ class Score2Stave:
         """
         score로부터 stave image추출
         """
+        biImg = Score2Stave.transform_img2binaryImg(score_path)
 
-        biImg, _, width = Score2Stave.get_score_data(score_path)
+        # cv2로 stave 추출하는 버전
+        # cnt, _, stats, _ = Score2Stave.extract_segment_from_score(biImg)
+        # stave_list = Score2Stave.extract_stave_from_score_cv2(biImg, cnt, stats)
 
-        cnt, _, stats, _ = Score2Stave.extract_segment_from_score(biImg)
+        # JSON 파일 읽어오기
+        title = Util.get_title_from_featurepath(score_path)
+        json_path = Util.get_filepath_from_title(title, EXP[JSON])
+        with open(json_path, "r") as json_file:
+            data = json.load(json_file)
 
-        stave_list = Score2Stave.extract_stave_from_score(biImg, width, cnt, stats)
+        stave_list, stave_stats_list = Score2Stave.extract_stave_from_score(biImg, data)
 
-        return stave_list
+        return stave_list, stave_stats_list
 
     @staticmethod
     def transform_stave2padStave(stave_list):
@@ -124,3 +186,21 @@ class Score2Stave:
                 stave,
             )
             print(state, idx, "--shape: ", stave.shape)
+
+    @staticmethod
+    def draw_stave_on_score(title, state, label_type, image_path, stave_stats_list):
+        """
+        OSMD로 추출한 cursor 위치값을 score에 그려보기
+        """
+        # 이미지 읽어오기
+        image = cv2.imread(image_path)
+
+        for stave_stats in stave_stats_list:
+            x, y, w, h = stave_stats
+            cv2.rectangle(image, (x, y, w, h), (255, 0, 0), 1)  # 사각형 그리기
+
+        date_time = Util.get_datetime()
+        cv2.imwrite(
+            f"{DATA_FEATURE_PATH}/{label_type}/{title}/{title}-{STAVE}-{state}-{date_time}.{EXP[PNG]}",
+            image,
+        )

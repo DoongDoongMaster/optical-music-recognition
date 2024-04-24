@@ -7,21 +7,21 @@ import pandas as pd
 
 
 from constant.common import (
-    CSV,
     CURSOR,
+    DATASET_DF,
     EXP,
+    FEATURE,
     JSON,
+    KEY_CURSOR_LIST,
+    KEY_MEASURE_LIST,
     LABELED_FEATURE,
     MULTI_LABEL,
     NOTE_PAD,
     PNG,
-    STAVE,
-    STAVE_HEIGHT,
     STAVE_WIDTH,
     XML,
 )
 from constant.note import (
-    NOTES,
     NOTES2CODE,
     NOTES_HEIGHT,
     REST_EIGHTH,
@@ -43,31 +43,33 @@ class FeatureLabeling:
     @staticmethod
     def process_all_feature2label():
         """
-        processed-feature/ 에 있는 모든 faeture 를 label 더해 새로운 feature-labeled csv 저장
+        processed-feature/ 의 faeture에 label 더해 새로운 feature-labeled csv 저장
         """
         # processed-feature/multi-label 에서 title들 가져오기
         feature_path_ = f"{DATA_FEATURE_PATH}/{MULTI_LABEL}"
-        feature_path_list = Util.get_all_subfolders(feature_path_)
+        feature_title_path_list = Util.get_all_subfolders(feature_path_)
 
-        # title 마다 score2stave -- score가 한 장이 아니라 여러 장일 수 있으니까 반복문으로 처리
-        for feature_path in feature_path_list:
+        # title 마다 score2stave
+        for feature_path in feature_title_path_list:
             title = Util.get_title_from_dir(feature_path)
             # XML, json 파일 경로
             file_parent = f"{DATA_RAW_PATH}/{OSMD}/{title}"
 
             # 라벨 가져오기
-            pitch_list, duration_list = FeatureLabeling.process_xml2label(file_parent)
+            pitch_list, duration_list = FeatureLabeling.process_xml2label(title)
 
             # feature 가져오기
-            csv_file_path = Util.get_all_files(f"{feature_path}", EXP[CSV])
+            csv_file_path = Util.get_csvpath_from_title(title, MULTI_LABEL, FEATURE)
+
             # label_feature 없애기
-            filtered_list = [s for s in csv_file_path if LABELED_FEATURE not in s]
-            feature_df = Util.load_feature_from_csv(filtered_list[0])
+            feature_df = Util.load_feature_from_csv(csv_file_path)
 
             # score에 pitch, width 그리기
             # json
-            json_path = f"{file_parent}/{title}.{EXP[JSON]}"
+            # json_path = f"{file_parent}/{title}.{EXP[JSON]}"
+            json_path = Util.get_filepath_from_title(title, EXP[JSON])
             score_path = Util.get_all_files(f"{file_parent}", EXP[PNG])
+
             try:
                 score_path = score_path[0]
 
@@ -94,19 +96,19 @@ class FeatureLabeling:
         with open(json_path, "r") as json_file:
             data = json.load(json_file)
 
-        # shape: NOTES_HEIGHT x feature concat width(40700)
+        # shape: NOTES_HEIGHT x feature concat
         label_df = pd.DataFrame(
             0, index=range(NOTES_HEIGHT), columns=range(feature_df.shape[0])
         )
         # -- stave는 score의 양옆 padding을 자르게 되니, 실제 cursor size와 달라짐. -> 맨 처음 마디의 x 만큼 sliding
-        score_leftpad = data["measureList"][0][0]["left"]
+        score_leftpad = data[KEY_MEASURE_LIST][0][0]["left"]
 
         cursor_list = 0
         # cursorList-2d: row 마디 x col 노트
-        for i, cursor in enumerate(data["cursorList"]):
+        for i, cursor in enumerate(data[KEY_CURSOR_LIST]):
             print("len: ", len(cursor))
 
-            for j, point in enumerate(cursor):
+            for _, point in enumerate(cursor):
                 # print("row: ", i, ", col: ", j)
 
                 _, left, _, width = FeatureLabeling.get_cursor_data(point)
@@ -142,9 +144,7 @@ class FeatureLabeling:
         label_df = np.transpose(label_df)
 
         # 각 열에 이름 붙이기
-        label_cols, feature_cols = FeatureLabeling.get_feature_label_df_column()
-        label_df.columns = label_cols
-        feature_df.columns = feature_cols
+        label_df.columns = DATASET_DF["label"]
 
         merged_df = pd.concat([label_df, feature_df], axis=1)
         Util.save_feature_csv(title, merged_df, MULTI_LABEL, LABELED_FEATURE)
@@ -152,16 +152,13 @@ class FeatureLabeling:
         # print(label_df)
 
     @staticmethod
-    def process_xml2label(file_parent):
+    def process_xml2label(title):
         """
         미리 뽑아놓은 feature csv로부터 label을 더해 새로운 feature-labeled csv 저장
         """
 
-        # -- 1개만 존재할 테니.. 첫 번째꺼 가져오기
-        xml_file_path = Util.get_all_files(f"{file_parent}", EXP[XML])
-
         try:
-            xml_file_path = xml_file_path[0]
+            xml_file_path = Util.get_filepath_from_title(title, EXP[XML])
             pitch_list = FeatureLabeling.extract_pitch(xml_file_path)
             duration_list = FeatureLabeling.extract_duration(xml_file_path)
 
@@ -426,15 +423,16 @@ class FeatureLabeling:
             data = json.load(json_file)
 
         print("===========================")
-        print("data[cursorList] : ", len(data["cursorList"]))
+        print("data[cursorList] : ", len(data[KEY_CURSOR_LIST]))
         print("pitch_list: ", len(pitch_list))
 
-        # -- data["cursorList"] 는 2D로 row: stave, col: cursor
+        # -- data[KEY_CURSOR_LIST
+        # ] 는 2D로 row: stave, col: cursor
         # -- pitch_list 는 1D로 cursor 쭉 나열되어 있음.
 
         cursor_idx = 0
         # cursorList-2d: row 마디 x col 노트
-        for _, cursor in enumerate(data["cursorList"]):
+        for _, cursor in enumerate(data[KEY_CURSOR_LIST]):
             for _, point in enumerate(cursor):
                 top, left, _, _ = FeatureLabeling.get_cursor_data(point)
 
@@ -467,18 +465,6 @@ class FeatureLabeling:
         )
 
     @staticmethod
-    def get_feature_label_df_column() -> pd.DataFrame:
-        """
-        -- dataframe 헤더 초기화
-        -- [G5, A5, ..., REST,...]
-        """
-        label_cols = NOTES
-        feature_cols = [f"{STAVE}-{i + 1}" for i in range(STAVE_HEIGHT)]
-
-        # label + feature
-        return label_cols, feature_cols
-
-    @staticmethod
     def load_all_labeled_feature_file():
         """
         1. 모든 processed-feature에 있는 labeled-feature.csv 파일들 가져오기
@@ -490,10 +476,12 @@ class FeatureLabeling:
 
         labeled_feature_file_list = []
         for title_path in title_path_list:
-            files = Util.get_all_files(f"{title_path}", EXP[CSV])
-            for file in files:
-                if LABELED_FEATURE in file:
-                    labeled_feature_file_list.append(file)
+            # files = Util.get_all_files(f"{title_path}", EXP[CSV])
+            title = Util.get_title_from_dir(title_path)
+            file = Util.get_csvpath_from_title(title, MULTI_LABEL, LABELED_FEATURE)
+            labeled_feature_file_list.append(file)
+            # for file in files:
+            #     if LABELED_FEATURE in file:
 
         # dataframe으로 합치기
         combined_df = pd.DataFrame()

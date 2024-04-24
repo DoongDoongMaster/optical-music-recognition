@@ -4,8 +4,9 @@ import os
 
 import pandas as pd
 
+from constant.common import CSV, EXP, FEATURE, JSON
 from constant.note import CODE2NOTES
-from constant.path import DATA_FEATURE_PATH
+from constant.path import DATA_FEATURE_PATH, DATA_RAW_PATH, OSMD
 
 
 class Util:
@@ -15,11 +16,17 @@ class Util:
 
     @staticmethod
     def get_title(score_path):
+        # path 로부터 title 가져옴
         return os.path.basename(os.path.dirname(score_path))
 
     @staticmethod
     def get_title_from_dir(score_path):
+        # "../data/raw/osmd-dataset-v1.0.0/Rock-ver"
         return os.path.basename(score_path)
+
+    @staticmethod
+    def get_title_from_featurepath(score_path):
+        return os.path.basename(os.path.dirname(os.path.dirname(score_path)))
 
     @staticmethod
     def get_all_files(parent_folder_path, exp):
@@ -64,3 +71,29 @@ class Util:
         for code, drum in CODE2NOTES.items():
             result_dict[drum] = [row[code] for row in arr_data]
         return result_dict
+
+    @staticmethod
+    def get_filepath_from_title(title, exp):
+        # title가지고 raw로부터 file path 리턴
+        path = f"{DATA_RAW_PATH}/{OSMD}/{title}"
+        try:
+            file = Util.get_all_files(path, exp)
+            return file[0]
+        except:
+            print(f"!!-- {exp} 파일이 없습니다 : {path} --!!")
+
+    @staticmethod
+    def get_csvpath_from_title(title, label_type, state):
+        """
+        state: FEATURE | LABELED_FEATURE
+        """
+        # title가지고 processed로부터 feature file path 리턴
+        path = f"{DATA_FEATURE_PATH}/{label_type}/{title}/{title}_{state}*.{EXP[CSV]}"
+        csv_files = glob.glob(path)
+        csv_files.sort(reverse=True)
+
+        if csv_files:
+            csv_file = csv_files[0]
+            return csv_file
+        else:
+            print(f"!!-- csv 파일이 없습니다 : {path} --!!")
