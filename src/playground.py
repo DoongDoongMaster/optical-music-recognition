@@ -1,13 +1,18 @@
 import cv2
+from matplotlib import pyplot as plt
 from constant.common import AUGMENT, EXP, MULTI_LABEL, NOTE, PNG, XML
 from constant.path import DATA_TEST_PATH, IMAGE_PATH, RESULT_XML_PATH
 from model.multilabel_note_model import MultiLabelNoteModel
 from feature_labeling import FeatureLabeling
 from data_processing import DataProcessing
 from Image2augment import Image2Augment
+from model.tromr_arch import TrOMR
 from score2stave import Score2Stave
 from note2xml import Note2XML
 from util import Util
+
+import albumentations as alb
+from albumentations.pytorch import ToTensorV2
 
 
 # ======================== note2xml ===========================
@@ -83,3 +88,84 @@ def process_image2augment():
 
 
 # process_image2augment()
+
+channels = 1
+patch_size = 16
+max_height = 128
+max_width = 1280
+max_seq_len = 256
+transform = alb.Compose(
+    [
+        alb.ToGray(always_apply=True),
+        alb.Normalize((0.7931, 0.7931, 0.7931), (0.1738, 0.1738, 0.1738)),
+        # ToTensorV2(),
+    ]
+)
+
+
+def preprocessing(rgb):
+    size_h = max_height
+
+    h, w, c = rgb.shape
+    new_h = size_h
+    new_w = int(size_h / h * w)
+    new_w = new_w // patch_size * patch_size
+    img = cv2.resize(rgb, (new_w, new_h))
+    img = transform(image=img)["image"][:1]
+    date_time = Util.get_datetime()
+    cv2.imwrite(f"{DATA_TEST_PATH}/test-{date_time}.png", img)
+
+    return img
+
+
+def predict_token(imgpath):
+    imgs = readimg(imgpath)
+    preprocessing(imgs)
+    # imgs = torch.cat(imgs).float().unsqueeze(1)
+    # output = model.generate(imgs.to(device), temperature=args.get("temperature", 0.2))
+    # rhythm, pitch, lift = output
+    # return rhythm, pitch, lift
+
+
+def predict_img2token(rgbimgs):
+    if not isinstance(rgbimgs, list):
+        rgbimgs = [rgbimgs]
+    imgs = [preprocessing(item) for item in rgbimgs]
+    # imgs = torch.cat(imgs).float().unsqueeze(1)
+    # output = model.generate(imgs.to(device), temperature=args.get("temperature", 0.2))
+    # rhythm, pitch, lift = output
+    # return rhythm, pitch, lift
+
+
+def readimg(path):
+
+    size_h = max_height
+
+    img = cv2.imread(path)
+    print(1)
+    print(img.shape)
+
+    # if img.shape[-1] == 4:
+    #     img = 255 - img[:, :, 3]
+    #     img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    # elif img.shape[-1] == 3:
+    #     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # else:
+    #     raise RuntimeError("Unsupport image type!")
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    h, w, c = img.shape
+    new_h = size_h
+    new_w = int(size_h / h * w)
+    new_w = new_w // patch_size * patch_size
+    img = cv2.resize(img, (new_w, new_h))
+    # img = transform(image=img)["image"]
+    print(2)
+    print(img.shape)
+    print(img.dtype)
+    cv2.imwrite(f"{DATA_TEST_PATH}/test-02.png", img)
+    return img
+
+
+# readimg(f"{DATA_TEST_PATH}/test-01.png")
+# predict_token(f"{DATA_TEST_PATH}/test-01.png")

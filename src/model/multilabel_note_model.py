@@ -45,6 +45,60 @@ from tensorflow.keras.layers import (
 )
 
 
+# Encoder 구현
+class Encoder(tf.keras.layers.Layer):
+    def __init__(self, filters, kernel_size):
+        super(Encoder, self).__init__()
+        self.conv1 = tf.keras.layers.Conv2D(
+            filters, kernel_size, padding="same", activation="relu"
+        )
+        self.pooling = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))
+
+    def call(self, inputs):
+        x = self.conv1(inputs)
+        x = self.pooling(x)
+        return x
+
+
+# Decoder 구현
+class Decoder(tf.keras.layers.Layer):
+    def __init__(self, units, output_dim):
+        super(Decoder, self).__init__()
+        self.gru = tf.keras.layers.GRU(units, return_sequences=True, return_state=True)
+        self.fc = tf.keras.layers.Dense(output_dim)
+
+    def call(self, inputs, initial_state):
+        x, state = self.gru(inputs, initial_state=initial_state)
+        x = self.fc(x)
+        return x, state
+
+
+# Attention 메커니즘 구현
+class Attention(tf.keras.layers.Layer):
+    def __init__(self, units):
+        super(Attention, self).__init__()
+        self.W1 = tf.keras.layers.Dense(units)
+        self.W2 = tf.keras.layers.Dense(units)
+        self.V = tf.keras.layers.Dense(1)
+
+    def call(self, decoder_hidden, encoder_output):
+        decoder_hidden_with_time_axis = tf.expand_dims(decoder_hidden, 1)
+        score = tf.nn.tanh(
+            self.W1(decoder_hidden_with_time_axis) + self.W2(encoder_output)
+        )
+        attention_weights = tf.nn.softmax(self.V(score), axis=1)
+        context_vector = attention_weights * encoder_output
+        context_vector = tf.reduce_sum(context_vector, axis=1)
+        return context_vector, attention_weights
+
+
+ENC_FILTERS = 64
+ENC_KERNEL_SIZE = (3, 3)
+ENC_STRIDES = (2, 2)
+LSTM_UNITS = 256
+OUTPUT_DIM = NOTES_HEIGHT  # 출력 차원은 클래스의 수에 따라 결정
+
+
 class MultiLabelNoteModel:
     def __init__(
         self,
@@ -55,6 +109,7 @@ class MultiLabelNoteModel:
         result_type,
         compile_mode=True,
     ):
+        # super(MultiLabelNoteModel, self).__init__()
         self.model = None
         self.training_epochs = training_epochs
         self.opt_learning_rate = opt_learning_rate
@@ -77,42 +132,125 @@ class MultiLabelNoteModel:
         self.n_classes = NOTES_HEIGHT
         self.opt_learning_rate = 0.01
 
+        enc_filters = 64
+        enc_kernel_size = (3, 3)
+        dec_units = 256
+        output_dim = NOTES_HEIGHT  # 출력 차원 설정 (음표의 종류에 따라)
+
+        self.encoder = Encoder(enc_filters, enc_kernel_size)
+        self.decoder = Decoder(dec_units, output_dim)
+        self.attention = Attention(dec_units)
+
+    # def call(self):
+    #     inputs = {
+    #         "image": self.x_train,
+    #         "start_token": "[START]",  # Decoder의 초기 입력 토큰
+    #         "max_length": CHUNK_TIME_LENGTH,  # Decoder가 예측할 최대 길이
+    #         "batch_size": self.batch_size,  # 배치 크기
+    #     }
+    #     encoder_output = self.encoder(inputs["image"])
+    #     decoder_hidden = encoder_output[:, -1, :]
+    #     decoder_input = tf.expand_dims(
+    #         [inputs["start_token"]] * inputs["batch_size"], 1
+    #     )
+
+    #     outputs = []
+    #     for t in range(inputs["max_length"]):
+    #         context_vector, _ = self.attention(decoder_hidden, encoder_output)
+    #         x, decoder_hidden = self.decoder(
+    #             decoder_input, initial_state=decoder_hidden
+    #         )
+    #         decoder_hidden = tf.concat([decoder_hidden, context_vector], axis=-1)
+    #         decoder_input = tf.expand_dims(tf.argmax(x, axis=2), 1)
+    #         outputs.append(x)
+    #     return tf.concat(outputs, axis=1)
+
     def create_model(self):
-        input_layer = Input(shape=(self.n_rows, self.n_columns, 1))
+        # # 입력 레이어 정의
+        input_layer = tf.keras.Input(shape=self.x_train.shape[1:])
 
-        # First Convolutional Block
-        conv1_1 = Conv2D(
-            filters=32, kernel_size=(3, 3), activation="tanh", padding="same"
-        )(input_layer)
-        conv1_1 = BatchNormalization()(conv1_1)
-        conv1_2 = Conv2D(
-            filters=32, kernel_size=(3, 3), activation="tanh", padding="same"
-        )(conv1_1)
-        conv1_2 = BatchNormalization()(conv1_2)
-        pool1 = MaxPooling2D(pool_size=(1, 3))(conv1_2)
-        dropout1 = Dropout(0.2)(pool1)
+        # # Encoder 정의
+        # encoder_output = self.encoder(input_layer)
 
-        # Reshape for RNN
-        reshape = Reshape((dropout1.shape[1], dropout1.shape[2] * dropout1.shape[3]))(
-            dropout1
-        )
+        # # Decoder 초기 hidden state 설정
+        # decoder_hidden = encoder_output[:, -1, :]
 
-        # BiGRU layers
-        lstm1 = Bidirectional(LSTM(50, return_sequences=True))(reshape)
-        lstm2 = Bidirectional(LSTM(50, return_sequences=True))(lstm1)
-        lstm3 = Bidirectional(LSTM(50, return_sequences=True))(lstm2)
-        dropout4 = Dropout(0.2)(lstm3)
+        # # Decoder 입력 레이어 정의
+        # decoder_input = tf.keras.Input(shape=(1,), dtype=tf.int32)
 
-        # Output layer
-        output_layer = Dense(self.n_classes, activation="sigmoid")(dropout4)
+        # # Decoder 출력을 저장할 리스트
+        # outputs = []
+
+        # # 시퀀스 길이에 따라 반복
+        # for _ in range(self.y_train.shape[1]):
+        #     # Attention 메커니즘 적용
+        #     context_vector, _ = self.attention(decoder_hidden, encoder_output)
+
+        #     # Decoder LSTM 실행
+        #     x, decoder_hidden = self.decoder(
+        #         decoder_input, initial_state=[decoder_hidden]
+        #     )
+
+        #     # Context vector와 hidden state 결합
+        #     decoder_hidden = tf.concat([decoder_hidden, context_vector], axis=-1)
+
+        #     # 출력 저장
+        #     outputs.append(x)
+
+        # # 모든 출력을 연결하여 하나의 출력 레이어 생성
+        # output_layer = tf.keras.layers.Concatenate(axis=1)(outputs)
+
+        # # 모델 생성
+        # model = tf.keras.Model(
+        #     inputs=[input_layer, decoder_input], outputs=output_layer
+        # )
+
+        # # 모델 요약 출력
+        # model.summary()
+
+        # # 옵티마이저 선택
+        # opt = tf.keras.optimizers.Adam(learning_rate=self.opt_learning_rate)
+
+        # # 모델 컴파일
+        # model.compile(
+        #     loss="binary_crossentropy", optimizer=opt, metrics=["binary_accuracy"]
+        # )
+
+        # input_layer = Input(shape=(self.n_rows, self.n_columns, 1))
+
+        # # First Convolutional Block
+        # conv1_1 = Conv2D(
+        #     filters=32, kernel_size=(3, 3), activation="tanh", padding="same"
+        # )(input_layer)
+        # conv1_1 = BatchNormalization()(conv1_1)
+        # conv1_2 = Conv2D(
+        #     filters=32, kernel_size=(3, 3), activation="tanh", padding="same"
+        # )(conv1_1)
+        # conv1_2 = BatchNormalization()(conv1_2)
+        # pool1 = MaxPooling2D(pool_size=(1, 3))(conv1_2)
+        # dropout1 = Dropout(0.2)(pool1)
+
+        # # Reshape for RNN
+        # reshape = Reshape((dropout1.shape[1], dropout1.shape[2] * dropout1.shape[3]))(
+        #     dropout1
+        # )
+
+        # # BiGRU layers
+        # lstm1 = Bidirectional(LSTM(50, return_sequences=True))(reshape)
+        # lstm2 = Bidirectional(LSTM(50, return_sequences=True))(lstm1)
+        # lstm3 = Bidirectional(LSTM(50, return_sequences=True))(lstm2)
+        # dropout4 = Dropout(0.2)(lstm3)
+
+        # # Output layer
+        # output_layer = Dense(self.n_classes, activation="sigmoid")(dropout4)
 
         # Model compilation
-        self.model = Model(inputs=input_layer, outputs=output_layer)
-        self.model.summary()
-        opt = Adam(learning_rate=self.opt_learning_rate)
-        self.model.compile(
-            loss="binary_crossentropy", optimizer=opt, metrics=["binary_accuracy"]
-        )
+        # self.model = Model(inputs=input_layer, outputs=output_layer)
+        # self.model.summary()
+        # opt = Adam(learning_rate=self.opt_learning_rate)
+        # self.model.compile(
+        #     loss="binary_crossentropy", optimizer=opt, metrics=["binary_accuracy"]
+        # )
 
     def save_model(self):
         """
@@ -197,7 +335,6 @@ class MultiLabelNoteModel:
         early_stopping = EarlyStopping(
             monitor="val_loss", patience=3, restore_best_weights=True, mode="auto"
         )
-
         history = self.model.fit(
             self.x_train,
             self.y_train,

@@ -79,19 +79,21 @@ class Score2Stave:
         stave_list = []
         stave_stats_list = []
         stave_pos_list = stave_pos_data[KEY_MEASURE_LIST]
+
+        PAD = 20
         for stave_pos in stave_pos_list:
             # 맨 처음 마디와 끝 마디의 길이만큼 자르기 - 마디 한 개만 있는 경우도 상관 없음.
             start_pos = stave_pos[0]
             end_pos = stave_pos[-1]
 
-            x = round(start_pos["left"])
+            x = round(start_pos["left"] - PAD)
 
             t_y = round((start_pos["top"] - STAVE_HEIGHT / 2))
             y = max(t_y, 0)
 
             h = STAVE_HEIGHT
 
-            w = round(end_pos["left"] + end_pos["width"] - start_pos["left"])
+            w = round(end_pos["left"] + end_pos["width"] - start_pos["left"] + 2 * PAD)
 
             stave = biImg[y : y + h, x : x + w]
             stave_list.append(stave)
@@ -182,8 +184,8 @@ class Score2Stave:
         for idx, stave in enumerate(stave_list):
             date_time = Util.get_datetime()
             cv2.imwrite(
-                f"{DATA_FEATURE_PATH}/{label_type}/{title}/{title}_{state}_{idx}_{date_time}.{EXP[PNG]}",
-                stave,
+                f"{DATA_FEATURE_PATH}/{label_type}/{title}/{title}_{state}_{idx+1}_{date_time}.{EXP[PNG]}",
+                255 - stave,
             )
             print(state, idx, "--shape: ", stave.shape)
 
