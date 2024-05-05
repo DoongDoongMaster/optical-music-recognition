@@ -8,7 +8,7 @@ STAVE_WIDTH = 1000
 NOTE_PAD = 2
 
 # -- chunk length - model에 넣기 전 dataset 가공 시
-CHUNK_TIME_LENGTH = 20
+CHUNK_TIME_LENGTH = 50
 
 PREDICT_STD = 0.5
 
@@ -17,7 +17,8 @@ PNG = "PNG"
 XML = "XML"
 JSON = "JSON"
 CSV = "CSV"
-EXP = {PNG: "png", XML: "xml", JSON: "json", CSV: "csv"}
+TXT = "txt"
+EXP = {PNG: "png", XML: "xml", JSON: "json", CSV: "csv", TXT: "txt"}
 
 STAVE = "stave"
 PAD_STAVE = "pad-stave"
@@ -31,8 +32,10 @@ PITCH = "pitch"
 NOTE = "note"
 MULTI_CLASS = "multi-class"
 MULTI_LABEL = "multi-label"
+TRANSFORMER = "transformer"
 
 AUGMENT = "augment"
+ANNOTATION = "annotation"
 
 """
 json info
@@ -48,10 +51,10 @@ ALL_AUGMENT = "all_augment"
 
 AUGMENT_SET = {
     ORIGIN: ORIGIN,
-    AWGN: AWGN,
-    ET_SMALL: ET_SMALL,
-    ET_LARGE: ET_LARGE,
-    ALL_AUGMENT: ALL_AUGMENT,
+    # AWGN: AWGN,
+    # ET_SMALL: ET_SMALL,
+    # ET_LARGE: ET_LARGE,
+    # ALL_AUGMENT: ALL_AUGMENT,
 }
 
 

@@ -8,6 +8,7 @@ from Image2augment import Image2Augment
 from score2stave import Score2Stave
 from note2xml import Note2XML
 from util import Util
+from xml2annotation import Xml2Annotation
 
 
 # ======================== omr ai ===========================
@@ -16,11 +17,14 @@ def process_all_data_aug():
 
 
 def process_all_data():
+    # Xml2Annotation.process_xml2annotation(
+    #     "../data/raw/osmd-dataset-v1.0.0/Rock-ver/Rock-ver.xml"
+    # )
     # save feature csv
     DataProcessing.process_all_score2stave()
 
-    # save labeled-feature csv
-    FeatureLabeling.process_all_feature2label()
+    # # save labeled-feature csv
+    # FeatureLabeling.process_all_feature2label()
 
 
 # multilabel_pitch_model = MultiLabelPitchModel(40, 0.001, 32, MULTI_LABEL, PITCH)
@@ -31,6 +35,7 @@ def train_model():
     # get feature, label from csv, train
     multilabel_pitch_model.create_dataset()
     multilabel_pitch_model.create_model()
+
     multilabel_pitch_model.train()
     multilabel_pitch_model.evaluate()
     multilabel_pitch_model.save_model()
@@ -65,4 +70,4 @@ def predict_model():
 # process_all_data_aug()
 # process_all_data()
 # train_model()
-predict_model()
+# predict_model()
