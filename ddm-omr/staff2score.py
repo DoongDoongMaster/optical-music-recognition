@@ -90,35 +90,59 @@ class StaffToScore(object):
     def __init__(self, args):
         self.args = args
         self.model = DDMOMR(args)
+        self.checkpoint_path = f"{self.args.filepaths.checkpoints}"
+        self.prediction_model = self.load_prediction_model(self.checkpoint_path)
 
-    def load_data_path(self, is_test=False):
+    def load_x_y(self, title_path):
+        """ """
+        # only measure folder
+        title_dataset_path = [
+            item for item in glob.glob(f"{title_path}/*") if os.path.isdir(item)
+        ]
+
+        x_exp = re.compile(r"^[^._].*\.png$")  # png exp
+        y_exp = re.compile(r"^[^._].*\.txt$")  # txt exp
+
+        x_raw_path_list = []  # image
+        y_raw_path_list = []  # label
+
+        for tdp in title_dataset_path:
+            files = os.listdir(tdp)
+            x_raw_path = [f"{tdp}/{file}" for file in files if x_exp.match(file)]
+            y_raw_path = [f"{tdp}/{file}" for file in files if y_exp.match(file)]
+            if len(x_raw_path) == len(y_raw_path):  # 개수 맞는 지 확인하고 추가
+                x_raw_path_list += x_raw_path
+                y_raw_path_list += y_raw_path
+
+        return x_raw_path_list, y_raw_path_list
+
+    def load_data_path(self):
         """
         각 measure에 대한 (png, txt) path 가져오기
         """
-        if is_test:
-            dataset_path = f"{self.args.filepaths.test_path}/"
-        else:
-            dataset_path = f"{self.args.filepaths.feature_path.seq}/"
+        dataset_path = f"{self.args.filepaths.feature_path.seq}/"
         title_path_list = Util.get_all_subfolders(dataset_path)
 
         x_raw_path_list = []  # image
         y_raw_path_list = []  # label
 
         for title_path in title_path_list:
-            title_dataset_path = [  # only measure folder
-                item for item in glob.glob(f"{title_path}/*") if os.path.isdir(item)
-            ]
+            x_raw_path, y_raw_path = self.load_x_y(title_path)
+            x_raw_path_list += x_raw_path
+            y_raw_path_list += y_raw_path
 
-            x_exp = re.compile(r"^[^._].*\.png$")  # png exp
-            y_exp = re.compile(r"^[^._].*\.txt$")  # txt exp
+            # title_dataset_path = [  # only measure folder
+            #     item for item in glob.glob(f"{title_path}/*") if os.path.isdir(item)
+            # ]
 
-            for tdp in title_dataset_path:
-                files = os.listdir(tdp)
-                x_raw_path = [f"{tdp}/{file}" for file in files if x_exp.match(file)]
-                y_raw_path = [f"{tdp}/{file}" for file in files if y_exp.match(file)]
-                if len(x_raw_path) == len(y_raw_path):  # 개수 맞는 지 확인하고 추가
-                    x_raw_path_list += x_raw_path
-                    y_raw_path_list += y_raw_path
+            # x_exp = re.compile(r"^[^._].*\.png$")  # png exp
+            # y_exp = re.compile(r"^[^._].*\.txt$")  # txt exp
+
+            # for tdp in title_dataset_path:
+            #     files = os.listdir(tdp)
+            #     x_raw_path = [f"{tdp}/{file}" for file in files if x_exp.match(file)]
+            #     y_raw_path = [f"{tdp}/{file}" for file in files if y_exp.match(file)]
+            #     if len(x_raw_path) == len(y_raw_path):  # 개수 맞는 지 확인하고 추가
 
         Util.print_step("load data")
         print(f"-- x: {len(x_raw_path_list)} | y: {len(y_raw_path_list)}")
@@ -140,8 +164,19 @@ class StaffToScore(object):
         # 7. 딕셔너리 형태로 return
         return {"image": img, "label": label_r}
 
-    def load_data(self, is_test=False):
-        x_raw_path_list, y_raw_path_list = self.load_data_path(is_test)
+    def pitch_encode_x(self, img):
+        # 1. 이미지로 변환하고 grayscale로 변환
+        img = tf.expand_dims(img, axis=-1)  # 채널 추가
+        # 2. [0,255]의 정수 범위를 [0,1]의 실수 범위로 변환 및 resize
+        img = tf.image.convert_image_dtype(img, tf.float32)
+        img = tf.image.resize(img, [self.args.max_height, self.args.max_width])
+        # 3. 이미지의 가로 세로 변환
+        img = tf.transpose(img, perm=[1, 0, 2])
+
+        return {"image": img}
+
+    def load_data(self):
+        x_raw_path_list, y_raw_path_list = self.load_data_path()
 
         x_preprocessed_list = []
         y_preprocessed_list = []
@@ -152,7 +187,7 @@ class StaffToScore(object):
             y_raw_path = y_raw_path_list[idx]
 
             # augment 5개 데이터 생성됐다면 -> y도 그만큼 복제해주기
-            x_preprocessed = self.preprocessing(x_raw_path, is_test)
+            x_preprocessed = self.preprocessing(x_raw_path)
 
             # annotation에서 띄어쓰기 있는 것들 사이사이는 + 로 연결해주기
             y_preprocessed = Util.read_txt_file(y_raw_path)
@@ -171,6 +206,84 @@ class StaffToScore(object):
         )
         pitch_labels = result_pitch
         return x_preprocessed_list, pitch_labels
+
+    def load_test_data(self):
+        test_path = f"{self.args.filepaths.test_path}/"
+        x_raw_path_list, y_raw_path_list = self.load_x_y(test_path)
+
+        x_preprocessed_list = []
+        y_preprocessed_list = []
+
+        for idx in range(len(x_raw_path_list)):
+            x_raw_path = x_raw_path_list[idx]
+            y_raw_path = y_raw_path_list[idx]
+            print(">>>>>>>>>>>>>>>>>>>>", x_raw_path)
+
+            biImg = Image2Augment.readimg(x_raw_path)
+            biImg = 255 - biImg
+            x_preprocessed_list.append(Image2Augment.resizeimg(self.args, biImg))
+
+            # annotation에서 띄어쓰기 있는 것들 사이사이는 + 로 연결해주기
+            y_preprocessed = Util.read_txt_file(y_raw_path)
+            y_preprocessed = y_preprocessed.replace(" ", "+").replace("\t", "+")
+            y_preprocessed_list.append(y_preprocessed)
+
+        print(
+            "전처리 후 x, y 개수: ", len(x_preprocessed_list), len(y_preprocessed_list)
+        )
+        result_lift, result_pitch, result_rhythm, result_note = (
+            self.map_notes2pitch_rhythm_lift_note(y_preprocessed_list)
+        )
+        pitch_labels = result_pitch
+        return x_preprocessed_list, pitch_labels
+
+    def predict(self, biImg_list):
+        # 아래 과정을 거친 rgb 이미지 데이터를 여러 개 예측
+        # biImg = Image2Augment.readimg(x_raw_path)
+        # biImg = 255 - biImg
+        print(">>>>>>>>>>>>>>>>>>>>", biImg_list)
+        x_preprocessed_list = []
+
+        for img in biImg_list:
+            x_preprocessed_list.append(Image2Augment.resizeimg(self.args, img))
+        print("전처리 후 x 개수: ", len(x_preprocessed_list))
+
+        # 리스트를 tf.Tensor로 변환
+        pitch_dataset = tf.data.Dataset.from_tensor_slices(
+            np.array(x_preprocessed_list)
+        )
+        # tf.Tensor로부터 Dataset 생성
+        # pitch_dataset = tf.data.Dataset.from_tensor_slices(x_preprocessed_tensor)
+        # print(pitch_dataset)
+
+        pitch_dataset = (
+            pitch_dataset.map(self.pitch_encode_x, num_parallel_calls=tf.data.AUTOTUNE)
+            .batch(self.args.batch_size)
+            .prefetch(buffer_size=tf.data.AUTOTUNE)
+        )
+
+        for batch in pitch_dataset.take(1):
+            batch_images = batch["image"]
+
+            print("-- 예측 --")
+            preds = self.prediction_model(batch_images)
+            pred_texts, y_pred = self.pitch_decode_batch_predictions(preds)
+
+            b_l = len(pred_texts)
+            _, ax = plt.subplots(b_l, 1, figsize=(80, 50))
+            # Ensure ax is always iterable
+            if b_l == 1:
+                ax = [ax]
+            for i in range(b_l):
+                img = (batch_images[i, :, :, 0] * 255).numpy().astype(np.uint8)
+                img = img.T
+                title_pred = f"Prediction: {pred_texts[i]}"
+                ax[i].imshow(img, cmap="gray")
+                ax[i].set_title(f"{title_pred}")
+                ax[i].axis("off")
+        os.makedirs(f"model-predict/", exist_ok=True)
+        plt.savefig(f"model-predict/pred.png")
+        plt.show()
 
     def training(self):
         x, y = self.load_data()
@@ -261,75 +374,59 @@ class StaffToScore(object):
             callbacks=[early_stopping, checkpoint_callback],
         )
 
-    def predict(self):
-        x, y = self.load_data(True)
-
-        pitch_x_train, pitch_x_valid, pitch_y_train, pitch_y_valid = train_test_split(
-            np.array(x), np.array(y), test_size=0.1, random_state=42
-        )
-
-        pitch_train_dataset = tf.data.Dataset.from_tensor_slices(
-            (pitch_x_train, pitch_y_train)
-        )
-        pitch_train_dataset = (
-            pitch_train_dataset.map(
-                self.pitch_encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
-            )
-            .batch(self.args.batch_size)
-            .prefetch(buffer_size=tf.data.AUTOTUNE)
-        )
-
-        pitch_validation_dataset = tf.data.Dataset.from_tensor_slices(
-            (pitch_x_valid, pitch_y_valid)
-        )
-        pitch_validation_dataset = (
-            pitch_validation_dataset.map(
-                self.pitch_encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
-            )
-            .batch(self.args.batch_size)
-            .prefetch(buffer_size=tf.data.AUTOTUNE)
-        )
-
+    def load_prediction_model(self, checkpoint_path):
         model = self.model.build_model()
-        checkpoint_path = f"{self.args.filepaths.checkpoints}"
-        # Checkpoint 파일 경로
         check = tf.train.latest_checkpoint(checkpoint_path)
-        print(">>>>>>>>>>>>>>", check)
+        print("-- Loading weights from:", check)
 
-        # 예측모델 만들기
+        # 예측 모델 만들기
         prediction_model = keras.models.Model(
-            model.get_layer(name="image").input, model.get_layer(name="dense2").output
+            model.get_layer(name="image").input,
+            model.get_layer(name="dense2").output,
         )
         prediction_model.load_weights(check).expect_partial()
         prediction_model.summary()
+        return prediction_model
 
-        def pitch_decode_batch_predictions(pred):
-            input_len = np.ones(pred.shape[0]) * pred.shape[1]
-            results = keras.backend.ctc_decode(
-                pred, input_length=input_len, greedy=True
-            )[0][0][:, : self.args.max_seq_len]
-            output_text = []
-            y_pred = []
-            for res in results:
-                # print(res)
-                y_pred.append(res.numpy().tolist())
-                res = (
-                    tf.strings.reduce_join(num_to_pitch_char(res))
-                    .numpy()
-                    .decode("utf-8")
-                    .strip("[UNK]")
-                )
-                output_text.append(res)
-            return output_text, y_pred
+    def pitch_decode_batch_predictions(self, pred):
+        input_len = np.ones(pred.shape[0]) * pred.shape[1]
+        results = keras.backend.ctc_decode(pred, input_length=input_len, greedy=True)[
+            0
+        ][0][:, : self.args.max_seq_len]
+        output_text = []
+        y_pred = []
+        for res in results:
+            # print(res)
+            y_pred.append(res.numpy().tolist())
+            res = (
+                tf.strings.reduce_join(num_to_pitch_char(res))
+                .numpy()
+                .decode("utf-8")
+                .strip("[UNK]")
+            )
+            output_text.append(res)
+        return output_text, y_pred
+
+    def test(self):
+        x, y = self.load_test_data()
+
+        pitch_dataset = tf.data.Dataset.from_tensor_slices((x, y))
+        pitch_dataset = (
+            pitch_dataset.map(
+                self.pitch_encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
+            )
+            .batch(self.args.batch_size)
+            .prefetch(buffer_size=tf.data.AUTOTUNE)
+        )
 
         #  validation dataset에서 하나의 배치를 시각화
-        for batch in pitch_validation_dataset.take(1):
+        for batch in pitch_dataset.take(1):
             batch_images = batch["image"]
             batch_labels = batch["label"]
 
             print("-- 예측 --")
-            preds = prediction_model.predict(batch_images)
-            pred_texts, y_pred = pitch_decode_batch_predictions(preds)
+            preds = self.prediction_model(batch_images)
+            pred_texts, y_pred = self.pitch_decode_batch_predictions(preds)
 
             orig_texts = []
             y_true = []
@@ -366,7 +463,7 @@ class StaffToScore(object):
         plt.savefig(f"model-predict/pred.png")
         plt.show()
 
-    def preprocessing(self, rgb, is_test=False):
+    def preprocessing(self, rgb):
         """
         하나의 image에 대한 전처리
         - augmentation 적용 -> binaryimage(origin), awgn,
@@ -377,11 +474,7 @@ class StaffToScore(object):
         for typename, img in augment_result:
             print("-- resize 전 : ", img.shape)
             resizeimg = Image2Augment.resizeimg(self.args, img)
-            if is_test:
-                if typename == "origin":
-                    resize_result.append((typename, resizeimg))
-            else:
-                resize_result.append((typename, resizeimg))
+            resize_result.append((typename, resizeimg))
 
         # (확인용) 전처리 적용된 거 저장
         # for typename, img in resize_result:
