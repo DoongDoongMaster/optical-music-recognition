@@ -3,6 +3,7 @@ import glob
 import os
 from typing import List
 
+
 class Util:
     @staticmethod
     def get_datetime():
@@ -39,6 +40,23 @@ class Util:
             for item in os.listdir(folder_path)
             if os.path.isdir(os.path.join(folder_path, item))
         ]
+
+    @staticmethod
+    def print_step(step: str) -> List[str]:
+        print(f"*************************************************")
+        print(f"***************    {step}    ********************")
+        print(f"*************************************************")
+
+    @staticmethod
+    def read_txt_file(file_path):
+        """
+        텍스트 파일을 읽어서 내용을 리스트로 반환하는 함수
+        """
+        with open(file_path, "r", encoding="utf-8") as file:
+            content = file.readlines()
+            # 각 줄의 개행 문자 제거
+            content = [line.strip() for line in content]
+        return content[0]
 
     # @staticmethod
     # def load_feature_from_csv(csv_file_path):
@@ -94,4 +112,3 @@ class Util:
     #         return csv_file
     #     else:
     #         print(f"!!-- csv 파일이 없습니다 : {path} --!!")
-

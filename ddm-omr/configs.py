@@ -1,6 +1,7 @@
 import os
 from omegaconf import OmegaConf
 
+
 def update_paths(base_path, paths):
     """
     Recursively update all paths in the dictionary by prepending the base_path.
@@ -11,6 +12,7 @@ def update_paths(base_path, paths):
     elif isinstance(paths, str):
         paths = os.path.join(base_path, paths)
     return paths
+
 
 def getconfig(configpath):
     args = OmegaConf.load(configpath)
