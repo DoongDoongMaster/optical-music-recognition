@@ -1,0 +1,20 @@
+#*************************************************
+#****************datasets args********************
+#*************************************************
+filepaths:
+  feature_path:
+    base: ../data/processed-feature
+    seq: ../data/processed-feature/sequence-annotation
+  raw_path:
+    osmd: ../data/raw/osmd-dataset-v1.0.0
+
+jsonkeys:
+  measure_list: measureList
+
+measure: measure
+measure_height: 120
+
+channels: 1
+max_height: 128
+max_width: 256
+max_seq_len: 24
