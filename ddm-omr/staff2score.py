@@ -1,6 +1,5 @@
 import os
 import re
-import sys
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
@@ -188,8 +187,37 @@ class StaffToScore(object):
     def __init__(self, args):
         self.args = args
         self.model = DDMOMR(args)
-        self.checkpoint_path = f"{self.args.filepaths.checkpoints}"
-        self.prediction_model = self.load_prediction_model(self.checkpoint_path)
+        # self.checkpoint_path = f"{self.args.filepaths.checkpoints}"
+        # self.prediction_model = self.load_model()
+
+    def save(self, model):
+        """
+        학습한 모델 저장
+        """
+        date_time = Util.get_datetime()
+        os.makedirs(self.args.filepaths.model_path.base, exist_ok=True)
+        model_path = f"{self.args.filepaths.model_path.model}_{date_time}.h5"
+        model.save(model_path)
+        print("--! save model: ", model_path)
+
+    def load_model(self, model_file=None):
+        """
+        -- method_type과 feature type에 맞는 가장 최근 모델 불러오기
+        """
+        model_files = glob(f"{self.args.filepaths.model_path.model}_*.h5")
+        if model_files is None or len(model_files) == 0:
+            print("-- ! No pre-trained model ! --")
+            return
+
+        model_files.sort(reverse=True)  # 최신 순으로 정렬
+        load_model_file = model_files[0]  # 가장 최근 모델
+
+        if model_file is not None:
+            load_model_file = model_file
+
+        print("-- ! load model: ", load_model_file)
+        model = tf.keras.models.load_model(load_model_file, compile=self.compile_mode)
+        return model
 
     def load_x_y(self, title_path):
         """ """
@@ -448,30 +476,17 @@ class StaffToScore(object):
             patience=early_stopping_patience,
             restore_best_weights=True,
         )
-        os.makedirs(f"{self.args.filepaths.checkpoints}", exist_ok=True)
 
-        # Define a checkpoint callback
-        checkpoint_callback = keras.callbacks.ModelCheckpoint(
-            filepath=os.path.join(
-                self.args.filepaths.checkpoints, "omr-checkpoint.ckpt"
-            ),
-            save_weights_only=True,
-            monitor="val_loss",
-            mode="min",
-            save_best_only=True,
-        )
-
-        # Save model weights to a .ckpt file
-        model.save_weights(
-            os.path.join(self.args.filepaths.checkpoints, "omr-checkpoint.ckpt")
-        )
         # Train the model with checkpointing
         model.fit(
             pitch_train_dataset,
             validation_data=pitch_validation_dataset,
             epochs=epochs,
-            callbacks=[early_stopping, checkpoint_callback],
+            callbacks=[early_stopping],
         )
+
+        # save
+        self.save(model)
 
         # 예측 모델 만들기
         prediction_model = keras.models.Model(
