@@ -26,10 +26,32 @@ class Image2Augment:
         input : rgb image
         return : binary image
         """
-        img = cv2.imread(img)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # -- 설정 임곗값(retval), 결과 이미지(biImg)
-        # -- 임곗값을 초과할 경우 0, 아닐 경우 maxval
+        # Read the image with unchanged flag to handle alpha channel if present
+        img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
+
+        if img is None:
+            raise RuntimeError("Image not found or unable to load.")
+
+        if img.shape[-1] == 4:
+            # Image has an alpha channel (RGBA)
+            alpha_channel = img[:, :, 3]
+            # Invert alpha channel to create mask
+            img = 255 - alpha_channel
+            # Convert single channel mask to 3-channel grayscale
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        elif img.shape[-1] == 3:
+            # Image is RGB
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        else:
+            raise RuntimeError("Unsupported image type!")
+
+        # Convert to grayscale if not already (RGB case)
+        if len(img.shape) == 3:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = img
+
+        # Apply binary inverse thresholding
         _, biImg = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
         return biImg
 
