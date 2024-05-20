@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from tensorflow.keras.utils import custom_object_scope
 from sklearn.model_selection import train_test_split
 
 from process_data.image2augment import Image2Augment
 from util import Util
-from model.ddm_omr_arch import DDMOMR
-
+from model.ddm_omr_arch import DDMOMR, CTCLayer
 
 char_to_int_mapping = [
     "|",  # 0
@@ -187,8 +187,8 @@ class StaffToScore(object):
     def __init__(self, args):
         self.args = args
         self.model = DDMOMR(args)
-        # self.checkpoint_path = f"{self.args.filepaths.checkpoints}"
-        # self.prediction_model = self.load_model()
+        self.ctc = CTCLayer()
+        self.prediction_model = self.load_model()
 
     def save(self, model):
         """
@@ -197,14 +197,14 @@ class StaffToScore(object):
         date_time = Util.get_datetime()
         os.makedirs(self.args.filepaths.model_path.base, exist_ok=True)
         model_path = f"{self.args.filepaths.model_path.model}_{date_time}.h5"
-        model.save(model_path)
+        model.save(model_path, save_format="tf")
         print("--! save model: ", model_path)
 
     def load_model(self, model_file=None):
         """
         -- method_type과 feature type에 맞는 가장 최근 모델 불러오기
         """
-        model_files = glob(f"{self.args.filepaths.model_path.model}_*.h5")
+        model_files = glob.glob(f"{self.args.filepaths.model_path.model}_*.h5")
         if model_files is None or len(model_files) == 0:
             print("-- ! No pre-trained model ! --")
             return
@@ -214,10 +214,22 @@ class StaffToScore(object):
 
         if model_file is not None:
             load_model_file = model_file
-
         print("-- ! load model: ", load_model_file)
-        model = tf.keras.models.load_model(load_model_file, compile=self.compile_mode)
-        return model
+
+        # 사용자 정의 레이어를 포함하는 딕셔너리를 만듭니다
+        # custom_object_scope를 사용하여 모델을 로드합니다
+        custom_objects = {"CTCLayer": self.ctc}
+        with custom_object_scope(custom_objects):
+            model = tf.keras.models.load_model(
+                load_model_file, custom_objects=custom_objects
+            )
+        # 예측 모델 만들기
+        prediction_model = keras.models.Model(
+            model.get_layer(name="image").input,
+            model.get_layer(name="dense2").output,
+        )
+
+        return prediction_model
 
     def load_x_y(self, title_path):
         """ """
@@ -330,11 +342,7 @@ class StaffToScore(object):
             "전처리 후 x, y 개수: ", len(x_preprocessed_list), len(y_preprocessed_list)
         )
         result_note = self.map_notes2pitch_rhythm_lift_note(y_preprocessed_list)
-
-        print(result_note)
-
-        pitch_labels = result_note
-        return x_preprocessed_list, pitch_labels
+        return x_preprocessed_list, result_note
 
     def load_test_data(self):
         test_path = f"{self.args.filepaths.test_path}/"
@@ -397,7 +405,7 @@ class StaffToScore(object):
             pred_texts, y_pred = self.pitch_decode_batch_predictions(preds)
 
             b_l = len(pred_texts)
-            _, ax = plt.subplots(b_l, 1)
+            _, ax = plt.subplots(b_l, 1, figsize=(24, 20))
             # Ensure ax is always iterable
             if b_l == 1:
                 ax = [ax]
@@ -614,7 +622,7 @@ class StaffToScore(object):
 
             # _, ax = plt.subplots(4, 4, figsize=(15, 5))
             b_l = len(pred_texts)
-            _, ax = plt.subplots(b_l, 1)
+            _, ax = plt.subplots(b_l, 1, figsize=(24, 20))
             for i in range(b_l):
                 img = (batch_images[i, :, :, 0] * 255).numpy().astype(np.uint8)
                 img = img.T
@@ -624,7 +632,8 @@ class StaffToScore(object):
                 ax[i].set_title(f"{title_true}\n{title_pred}")
                 ax[i].axis("off")
         os.makedirs(f"predict-result/", exist_ok=True)
-        plt.savefig(f"predict-result/pred.png")
+        datetime = Util.get_datetime()
+        plt.savefig(f"predict-result/pred-{datetime}.png")
         plt.show()
 
     def preprocessing(self, rgb):
