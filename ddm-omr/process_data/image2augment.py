@@ -113,8 +113,8 @@ class Image2Augment:
         distorted_x = np.clip(x + dx, 0, width - 1)
         distorted_y = np.clip(y + dy, 0, height - 1)
 
-        print("--", distorted_x.shape)
-        print("--", distorted_y.shape)
+        # print("--", distorted_x.shape)
+        # print("--", distorted_y.shape)
 
         distorted_image = map_coordinates(
             image,
@@ -153,13 +153,13 @@ class Image2Augment:
             f"{dir_path}/{augment_type}_{date_time}.png",
             image,
         )
-        print(augment_type, "--AUGMENT shape: ", image.shape)
+        # print(augment_type, "--AUGMENT shape: ", image.shape)
 
     @staticmethod
     def resizeimg(args, img):
         # Input: 2D Image
         h, w = img.shape
-        print(">>>>>>>>>>>>>>>>>>>>>>>")
+        # print(">>>>>>>>>>>>>>>>>>>>>>>")
 
         # 이미지의 가로세로 비율 계산
         ratio = min(args.max_width / w, args.max_height / h)
