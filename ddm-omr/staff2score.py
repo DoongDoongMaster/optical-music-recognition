@@ -1,53 +1,17 @@
 import os
+import re
+import sys
+import glob
 import numpy as np
 import matplotlib.pyplot as plt
-from pathlib import Path
-from collections import Counter
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from sklearn.model_selection import train_test_split
 
-import glob
-import re
-
-import albumentations as alb
-from albumentations.pytorch import ToTensorV2
-import sys
-
-sys.path.append("/mnt/c/Users/wotjr/Documents/Github/optical-music-recognition/ddm-omr")
 from process_data.image2augment import Image2Augment
 from util import Util
-
-from sklearn.model_selection import train_test_split
 from model.ddm_omr_arch import DDMOMR
-
-# from model import TrOMR
-# char_to_int_mapping = [
-#     "|",  # 0
-#     "barline",  # 1
-#     "clef-percussion",  # 2
-#     "note-eighth",  # 3
-#     "note-eighth.",  # 4
-#     "note-half",  # 5
-#     "note-half.",  # 6
-#     "note-quarter",  # 7
-#     "note-quarter.",  # 8
-#     "note-16th",  # 9
-#     "note-16th.",  # 10
-#     "note-whole",  # 11
-#     "note-whole.",  # 12
-#     "rest_eighth",  # 13
-#     "rest_eighth.",  # 14
-#     "rest_half",  # 15
-#     "rest_half.",  # 16
-#     "rest_quarter",  # 17
-#     "rest_quarter.",  # 18
-#     "rest_16th",  # 19
-#     "rest_16th.",  # 20
-#     "rest_whole",  # 21
-#     "rest_whole.",  # 22
-#     "timeSignature-4/4",  # 23
-# ]
 
 
 char_to_int_mapping = [
@@ -211,38 +175,13 @@ char_to_int_mapping = [
     "rest_whole.",  # 22
 ]
 
-
-pitch_to_int_mapping = [
-    "|",  # 1
-    "nonote",  # 2
-    "note-D4",  # 3
-    "note-E4",  # 4
-    "note-F4",  # 5
-    "note-G4",  # 6
-    "note-A4",  # 7
-    "note-B4",  # 8
-    "note-C5",  # 9
-    "note-D5",  # 10
-    "note-E5",  # 11
-    "note-F5",  # 12
-    "note-G5",  # 13
-    "note-A5",  # 14
-    "note-B5",  # 15
-]
-
-
 # 문자를 숫자로 변환
 char_to_num = layers.StringLookup(vocabulary=list(char_to_int_mapping), mask_token=None)
-# pitch_char_to_num = layers.StringLookup(
-#     vocabulary=list(pitch_to_int_mapping), mask_token=None
-# )
+
 # 숫자를 문자로 변환
 num_to_char = layers.StringLookup(
     vocabulary=char_to_num.get_vocabulary(), mask_token=None, invert=True
 )
-# num_to_pitch_char = layers.StringLookup(
-#     vocabulary=pitch_char_to_num.get_vocabulary(), mask_token=None, invert=True
-# )
 
 
 class StaffToScore(object):
@@ -250,7 +189,7 @@ class StaffToScore(object):
         self.args = args
         self.model = DDMOMR(args)
         self.checkpoint_path = f"{self.args.filepaths.checkpoints}"
-        # self.prediction_model = self.load_prediction_model(self.checkpoint_path)
+        self.prediction_model = self.load_prediction_model(self.checkpoint_path)
 
     def load_x_y(self, title_path):
         """ """
@@ -308,9 +247,10 @@ class StaffToScore(object):
 
         return x_raw_path_list, y_raw_path_list
 
-    def pitch_encode_single_sample(self, img, label):
+    def encode_single_sample(self, img, label):
         # 1. 이미지로 변환하고 grayscale로 변환
-        img = tf.expand_dims(img, axis=-1)  # 채널 추가
+        if img.shape.ndims == 2:
+            img = tf.expand_dims(img, axis=-1)  # 채널 추가
         # 2. [0,255]의 정수 범위를 [0,1]의 실수 범위로 변환 및 resize
         img = tf.image.convert_image_dtype(img, tf.float32)
         img = tf.image.resize(img, [self.args.max_height, self.args.max_width])
@@ -325,7 +265,8 @@ class StaffToScore(object):
 
     def pitch_encode_x(self, img):
         # 1. 이미지로 변환하고 grayscale로 변환
-        img = tf.expand_dims(img, axis=-1)  # 채널 추가
+        if img.shape.ndims == 2:
+            img = tf.expand_dims(img, axis=-1)  # 채널 추가
         # 2. [0,255]의 정수 범위를 [0,1]의 실수 범위로 변환 및 resize
         img = tf.image.convert_image_dtype(img, tf.float32)
         img = tf.image.resize(img, [self.args.max_height, self.args.max_width])
@@ -428,7 +369,7 @@ class StaffToScore(object):
             pred_texts, y_pred = self.pitch_decode_batch_predictions(preds)
 
             b_l = len(pred_texts)
-            _, ax = plt.subplots(b_l, 1, figsize=(80, 50))
+            _, ax = plt.subplots(b_l, 1)
             # Ensure ax is always iterable
             if b_l == 1:
                 ax = [ax]
@@ -455,7 +396,7 @@ class StaffToScore(object):
         )
         pitch_train_dataset = (
             pitch_train_dataset.map(
-                self.pitch_encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
+                self.encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
             )
             .batch(self.args.batch_size)
             .prefetch(buffer_size=tf.data.AUTOTUNE)
@@ -466,7 +407,7 @@ class StaffToScore(object):
         )
         pitch_validation_dataset = (
             pitch_validation_dataset.map(
-                self.pitch_encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
+                self.encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
             )
             .batch(self.args.batch_size)
             .prefetch(buffer_size=tf.data.AUTOTUNE)
@@ -569,7 +510,7 @@ class StaffToScore(object):
 
             # _, ax = plt.subplots(4, 4, figsize=(15, 5))
             b_l = len(pred_texts)
-            _, ax = plt.subplots(b_l, 1, figsize=(80, 50))
+            _, ax = plt.subplots(b_l, 1)
             for i in range(b_l):
                 img = (batch_images[i, :, :, 0] * 255).numpy().astype(np.uint8)
                 img = img.T
@@ -621,7 +562,7 @@ class StaffToScore(object):
         pitch_dataset = tf.data.Dataset.from_tensor_slices((x, y))
         pitch_dataset = (
             pitch_dataset.map(
-                self.pitch_encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
+                self.encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
             )
             .batch(self.args.batch_size)
             .prefetch(buffer_size=tf.data.AUTOTUNE)
@@ -658,7 +599,7 @@ class StaffToScore(object):
 
             # _, ax = plt.subplots(4, 4, figsize=(15, 5))
             b_l = len(pred_texts)
-            _, ax = plt.subplots(b_l, 1, figsize=(80, 50))
+            _, ax = plt.subplots(b_l, 1)
             for i in range(b_l):
                 img = (batch_images[i, :, :, 0] * 255).numpy().astype(np.uint8)
                 img = img.T
@@ -695,15 +636,9 @@ class StaffToScore(object):
         return resize_result
 
     def map_notes2pitch_rhythm_lift_note(self, note_list):
-        result_lift = []
-        result_pitch = []
-        result_rhythm = []
         result_note = []
 
         for notes in note_list:
-            group_lift = []
-            group_pitch = []
-            group_rhythm = []
             group_notes_token_len = 0
             group_note = []
 
@@ -712,107 +647,28 @@ class StaffToScore(object):
             note_split = notes.split("+")
             for note_s in note_split:
                 if "|" in note_s:
-                    mapped_lift_chord = []
-                    mapped_pitch_chord = []
-                    mapped_rhythm_chord = []
                     mapped_note_chord = []
 
                     # note-G#3_eighth|note-G#3_eighth
-                    # (note-G#3_eighth) (note-G#3_eighth)
+                    # -> (note-G#3_eighth) (note-G#3_eighth)
                     note_split_chord = note_s.split("|")
                     mapped_note_chord = note_split_chord
-                    # for idx, note_s_c in enumerate(note_split_chord):
-                    #     chord_lift, chord_pitch, chord_rhythm = (
-                    #         self.note2pitch_rhythm_lift(note_s_c)
-                    #     )
-
-                    #     mapped_lift_chord.append(chord_lift)
-                    #     mapped_pitch_chord.append(chord_pitch)
-                    #     mapped_rhythm_chord.append(chord_rhythm)
-
-                    #     # --> '|' 도 token이기 때문에 lift, pitch엔 nonote 추가해주기
-                    #     if idx != len(note_split_chord) - 1:
-                    #         mapped_lift_chord.append("nonote")
-                    #         # mapped_pitch_chord.append("nonote")
-
-                    # group_lift.append(" ".join(mapped_lift_chord))
-                    # group_pitch.append(" | ".join(mapped_pitch_chord))
-                    # group_rhythm.append(" | ".join(mapped_rhythm_chord))
-
                     group_note.append(" | ".join(mapped_note_chord))
 
-                    # --> '|' 도 token이기 때문에 추가된 token 개수 더하기
+                    # '|' 도 token이기 때문에 추가된 token 개수 더하기
                     # 동시에 친 걸 하나의 string으로 해버리는 거니까 주의하기
                     group_notes_token_len += (
                         len(note_split_chord) + len(note_split_chord) - 1
                     )
-
-                # elif "note" in note_s:
-                #     if "_" in note_s:
-                #         # # note-G#3_eighth
-                #         # note2lift, note2pitch, note2rhythm = (
-                #         #     self.note2pitch_rhythm_lift(note_s)
-                #         # )
-                #         # group_lift.append(note2lift)
-                #         # group_pitch.append(note2pitch)
-                #         # group_rhythm.append(note2rhythm)
-
-                #         group_notes_token_len += 1
-
-                # elif "rest" in note_s:
-                #     if "_" in note_s:
-                #         # rest_quarter
-                #         # rest2lift, rest2pitch, rest2rhythm = (
-                #         #     self.rest2pitch_rhythm_lift(note_s)
-                #         # )
-                #         # group_lift.append(rest2lift)
-                #         # group_pitch.append(rest2pitch)
-                #         # group_rhythm.append(rest2rhythm)
-                #         group_notes_token_len += 1
-                # else:
-                #     # # clef-F4+keySignature-AM+timeSignature-12/8
-                #     # symbol2lift, symbol2pitch, symbol2rhythm = (
-                #     #     self.symbol2pitch_rhythm_lift("nonote", "nonote", note_s)
-                #     # )
-                #     # group_lift.append(symbol2lift)
-                #     # group_pitch.append(symbol2pitch)
-                #     # group_rhythm.append(symbol2rhythm)
-                #     group_notes_token_len += 1
-
                 else:
                     group_note.append(note_s)
                     group_notes_token_len += 1
 
-            toks_len = group_notes_token_len
-
-            # lift, pitch
-            # emb_lift="nonote+"
-            # emb_pitch="nonote+"
-
-            emb_lift = " ".join(group_lift)
-            emb_pitch = " ".join(group_pitch)
-            # emb_lift+="+nonote"
-            # emb_pitch+="+nonote"
-
-            # rhythm
-            # emb_rhythm="[BOS]"
-            emb_rhythm = " ".join(group_rhythm)
-            # emb_rhythm+="[EOS]"
-
             emb_note = " ".join(group_note)
-
+            toks_len = group_notes_token_len
             # 뒤에 남은 건 패딩
             if toks_len < self.args.max_seq_len:
                 for _ in range(self.args.max_seq_len - toks_len):
-                    # emb_lift += " [PAD]"
-                    # emb_pitch += " [PAD]"
-                    # emb_rhythm += " [PAD]"
                     emb_note += " [PAD]"
-
-            # result_lift.append(emb_lift)
-            # result_pitch.append(emb_pitch)
-            # result_rhythm.append(emb_rhythm)
-            # result_note.append(self.map_pitch2isnote(emb_pitch))
-
             result_note.append(emb_note)
         return result_note

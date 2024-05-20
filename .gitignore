@@ -7,6 +7,10 @@
 
 # image file
 /images/
+ddm-omr/zeropadding-output
+ddm-omr/augment-output
+ddm-omr/dataset-output
+ddm-omr/predict-result
 
 # result-xml file
 /result-xml/
