@@ -14,7 +14,7 @@ args = getconfig(cofigpath)
 # DataProcessing.process_all_score2measure(args)
 staff2score = StaffToScore(args)
 
-staff2score.training()
+# staff2score.training()
 staff2score.test()
 
 # x_raw_path = [

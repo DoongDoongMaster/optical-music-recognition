@@ -250,7 +250,7 @@ class StaffToScore(object):
         self.args = args
         self.model = DDMOMR(args)
         self.checkpoint_path = f"{self.args.filepaths.checkpoints}"
-        # self.prediction_model = self.load_prediction_model(self.checkpoint_path)
+        self.prediction_model = self.load_prediction_model(self.checkpoint_path)
 
     def load_x_y(self, title_path):
         """ """
@@ -308,9 +308,10 @@ class StaffToScore(object):
 
         return x_raw_path_list, y_raw_path_list
 
-    def pitch_encode_single_sample(self, img, label):
+    def encode_single_sample(self, img, label):
         # 1. 이미지로 변환하고 grayscale로 변환
-        img = tf.expand_dims(img, axis=-1)  # 채널 추가
+        if img.shape.ndims == 2:
+            img = tf.expand_dims(img, axis=-1)  # 채널 추가
         # 2. [0,255]의 정수 범위를 [0,1]의 실수 범위로 변환 및 resize
         img = tf.image.convert_image_dtype(img, tf.float32)
         img = tf.image.resize(img, [self.args.max_height, self.args.max_width])
@@ -325,7 +326,8 @@ class StaffToScore(object):
 
     def pitch_encode_x(self, img):
         # 1. 이미지로 변환하고 grayscale로 변환
-        img = tf.expand_dims(img, axis=-1)  # 채널 추가
+        if img.shape.ndims == 2:
+            img = tf.expand_dims(img, axis=-1)  # 채널 추가
         # 2. [0,255]의 정수 범위를 [0,1]의 실수 범위로 변환 및 resize
         img = tf.image.convert_image_dtype(img, tf.float32)
         img = tf.image.resize(img, [self.args.max_height, self.args.max_width])
@@ -428,7 +430,7 @@ class StaffToScore(object):
             pred_texts, y_pred = self.pitch_decode_batch_predictions(preds)
 
             b_l = len(pred_texts)
-            _, ax = plt.subplots(b_l, 1, figsize=(80, 50))
+            _, ax = plt.subplots(b_l, 1)
             # Ensure ax is always iterable
             if b_l == 1:
                 ax = [ax]
@@ -455,7 +457,7 @@ class StaffToScore(object):
         )
         pitch_train_dataset = (
             pitch_train_dataset.map(
-                self.pitch_encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
+                self.encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
             )
             .batch(self.args.batch_size)
             .prefetch(buffer_size=tf.data.AUTOTUNE)
@@ -466,7 +468,7 @@ class StaffToScore(object):
         )
         pitch_validation_dataset = (
             pitch_validation_dataset.map(
-                self.pitch_encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
+                self.encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
             )
             .batch(self.args.batch_size)
             .prefetch(buffer_size=tf.data.AUTOTUNE)
@@ -569,7 +571,7 @@ class StaffToScore(object):
 
             # _, ax = plt.subplots(4, 4, figsize=(15, 5))
             b_l = len(pred_texts)
-            _, ax = plt.subplots(b_l, 1, figsize=(80, 50))
+            _, ax = plt.subplots(b_l, 1)
             for i in range(b_l):
                 img = (batch_images[i, :, :, 0] * 255).numpy().astype(np.uint8)
                 img = img.T
@@ -621,7 +623,7 @@ class StaffToScore(object):
         pitch_dataset = tf.data.Dataset.from_tensor_slices((x, y))
         pitch_dataset = (
             pitch_dataset.map(
-                self.pitch_encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
+                self.encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE
             )
             .batch(self.args.batch_size)
             .prefetch(buffer_size=tf.data.AUTOTUNE)
@@ -658,7 +660,7 @@ class StaffToScore(object):
 
             # _, ax = plt.subplots(4, 4, figsize=(15, 5))
             b_l = len(pred_texts)
-            _, ax = plt.subplots(b_l, 1, figsize=(80, 50))
+            _, ax = plt.subplots(b_l, 1)
             for i in range(b_l):
                 img = (batch_images[i, :, :, 0] * 255).numpy().astype(np.uint8)
                 img = img.T
