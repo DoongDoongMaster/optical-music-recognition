@@ -3,20 +3,183 @@ from tensorflow import keras
 import tensorflow as tf
 
 # from model import TrOMR
+# char_to_int_mapping = [
+#     "|",  # 0
+#     "barline",  # 1
+#     "clef-percussion",  # 2
+#     "note-eighth",  # 3
+#     "note-eighth.",  # 4
+#     "note-half",  # 5
+#     "note-half.",  # 6
+#     "note-quarter",  # 7
+#     "note-quarter.",  # 8
+#     "note-16th",  # 9
+#     "note-16th.",  # 10
+#     "note-whole",  # 11
+#     "note-whole.",  # 12
+#     "rest_eighth",  # 13
+#     "rest_eighth.",  # 14
+#     "rest_half",  # 15
+#     "rest_half.",  # 16
+#     "rest_quarter",  # 17
+#     "rest_quarter.",  # 18
+#     "rest_16th",  # 19
+#     "rest_16th.",  # 20
+#     "rest_whole",  # 21
+#     "rest_whole.",  # 22
+#     "timeSignature-4/4",  # 23
+# ]
+
+
 char_to_int_mapping = [
     "|",  # 0
     "barline",  # 1
     "clef-percussion",  # 2
-    "note-eighth",  # 3
-    "note-eighth.",  # 4
-    "note-half",  # 5
-    "note-half.",  # 6
-    "note-quarter",  # 7
-    "note-quarter.",  # 8
-    "note-16th",  # 9
-    "note-16th.",  # 10
-    "note-whole",  # 11
-    "note-whole.",  # 12
+    "timeSignature-4/4",  # 3
+    # 1
+    "note-D4_eighth",
+    "note-D4_eighth.",
+    "note-D4_half",
+    "note-D4_half.",
+    "note-D4_quarter",
+    "note-D4_quarter.",
+    "note-D4_16th",
+    "note-D4_16th.",
+    "note-D4_whole",
+    "note-D4_whole.",
+    # 2
+    "note-E4_eighth",
+    "note-E4_eighth.",
+    "note-E4_half",
+    "note-E4_half.",
+    "note-E4_quarter",
+    "note-E4_quarter.",
+    "note-E4_16th",
+    "note-E4_16th.",
+    "note-E4_whole",
+    "note-E4_whole.",
+    # 3
+    "note-F4_eighth",
+    "note-F4_eighth.",
+    "note-F4_half",
+    "note-F4_half.",
+    "note-F4_quarter",
+    "note-F4_quarter.",
+    "note-F4_16th",
+    "note-F4_16th.",
+    "note-F4_whole",
+    "note-F4_whole.",
+    # 4
+    "note-G4_eighth",
+    "note-G4_eighth.",
+    "note-G4_half",
+    "note-G4_half.",
+    "note-G4_quarter",
+    "note-G4_quarter.",
+    "note-G4_16th",
+    "note-G4_16th.",
+    "note-G4_whole",
+    "note-G4_whole.",
+    # 5
+    "note-A4_eighth",
+    "note-A4_eighth.",
+    "note-A4_half",
+    "note-A4_half.",
+    "note-A4_quarter",
+    "note-A4_quarter.",
+    "note-A4_16th",
+    "note-A4_16th.",
+    "note-A4_whole",
+    "note-A4_whole.",
+    # 6
+    "note-B4_eighth",
+    "note-B4_eighth.",
+    "note-B4_half",
+    "note-B4_half.",
+    "note-B4_quarter",
+    "note-B4_quarter.",
+    "note-B4_16th",
+    "note-B4_16th.",
+    "note-B4_whole",
+    "note-B4_whole.",
+    # 7
+    "note-C5_eighth",
+    "note-C5_eighth.",
+    "note-C5_half",
+    "note-C5_half.",
+    "note-C5_quarter",
+    "note-C5_quarter.",
+    "note-C5_16th",
+    "note-C5_16th.",
+    "note-C5_whole",
+    "note-C5_whole.",
+    # 8
+    "note-D5_eighth",
+    "note-D5_eighth.",
+    "note-D5_half",
+    "note-D5_half.",
+    "note-D5_quarter",
+    "note-D5_quarter.",
+    "note-D5_16th",
+    "note-D5_16th.",
+    "note-D5_whole",
+    "note-D5_whole.",
+    # 9
+    "note-E5_eighth",
+    "note-E5_eighth.",
+    "note-E5_half",
+    "note-E5_half.",
+    "note-E5_quarter",
+    "note-E5_quarter.",
+    "note-E5_16th",
+    "note-E5_16th.",
+    "note-E5_whole",
+    "note-E5_whole.",
+    # 10
+    "note-F5_eighth",
+    "note-F5_eighth.",
+    "note-F5_half",
+    "note-F5_half.",
+    "note-F5_quarter",
+    "note-F5_quarter.",
+    "note-F5_16th",
+    "note-F5_16th.",
+    "note-F5_whole",
+    "note-F5_whole.",
+    # 11
+    "note-G5_eighth",
+    "note-G5_eighth.",
+    "note-G5_half",
+    "note-G5_half.",
+    "note-G5_quarter",
+    "note-G5_quarter.",
+    "note-G5_16th",
+    "note-G5_16th.",
+    "note-G5_whole",
+    "note-G5_whole.",
+    # 12
+    "note-A5_eighth",
+    "note-A5_eighth.",
+    "note-A5_half",
+    "note-A5_half.",
+    "note-A5_quarter",
+    "note-A5_quarter.",
+    "note-A5_16th",
+    "note-A5_16th.",
+    "note-A5_whole",
+    "note-A5_whole.",
+    # 13
+    "note-B5_eighth",
+    "note-B5_eighth.",
+    "note-B5_half",
+    "note-B5_half.",
+    "note-B5_quarter",
+    "note-B5_quarter.",
+    "note-B5_16th",
+    "note-B5_16th.",
+    "note-B5_whole",
+    "note-B5_whole.",
+    #
     "rest_eighth",  # 13
     "rest_eighth.",  # 14
     "rest_half",  # 15
@@ -27,44 +190,11 @@ char_to_int_mapping = [
     "rest_16th.",  # 20
     "rest_whole",  # 21
     "rest_whole.",  # 22
-    "timeSignature-4/4",  # 23
-]
-
-pitch_to_int_mapping = [
-    "|",  # 1
-    "nonote",  # 2
-    "note-D4",  # 3
-    "note-E4",  # 4
-    "note-F4",  # 5
-    "note-G4",  # 6
-    "note-A4",  # 7
-    "note-B4",  # 8
-    "note-C5",  # 9
-    "note-D5",  # 10
-    "note-E5",  # 11
-    "note-F5",  # 12
-    "note-G5",  # 13
-    "note-A5",  # 14
-    "note-B5",  # 15
 ]
 
 
 # 문자를 숫자로 변환
 char_to_num = layers.StringLookup(vocabulary=list(char_to_int_mapping), mask_token=None)
-# print(char_to_num.get_vocabulary())
-# test=["clef-percussion","note-eighth","|","note-eighth", "note-eighth", "note-eighth|note-eighth", "rest_whole"]
-# print(char_to_num(test))
-pitch_char_to_num = layers.StringLookup(
-    vocabulary=list(pitch_to_int_mapping), mask_token=None
-)
-
-# 숫자를 문자로 변환
-num_to_char = layers.StringLookup(
-    vocabulary=char_to_num.get_vocabulary(), mask_token=None, invert=True
-)
-num_to_pitch_char = layers.StringLookup(
-    vocabulary=pitch_char_to_num.get_vocabulary(), mask_token=None, invert=True
-)
 
 
 class CTCLayer(layers.Layer):
@@ -142,7 +272,7 @@ class DDMOMR:
 
         # Output layer
         x = layers.Dense(
-            len(pitch_char_to_num.get_vocabulary()) + 1,
+            len(char_to_num.get_vocabulary()) + 1,
             activation="softmax",
             name="dense2",
         )(x)

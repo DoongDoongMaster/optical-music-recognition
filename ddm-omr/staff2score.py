@@ -22,20 +22,183 @@ from sklearn.model_selection import train_test_split
 from model.ddm_omr_arch import DDMOMR
 
 # from model import TrOMR
+# char_to_int_mapping = [
+#     "|",  # 0
+#     "barline",  # 1
+#     "clef-percussion",  # 2
+#     "note-eighth",  # 3
+#     "note-eighth.",  # 4
+#     "note-half",  # 5
+#     "note-half.",  # 6
+#     "note-quarter",  # 7
+#     "note-quarter.",  # 8
+#     "note-16th",  # 9
+#     "note-16th.",  # 10
+#     "note-whole",  # 11
+#     "note-whole.",  # 12
+#     "rest_eighth",  # 13
+#     "rest_eighth.",  # 14
+#     "rest_half",  # 15
+#     "rest_half.",  # 16
+#     "rest_quarter",  # 17
+#     "rest_quarter.",  # 18
+#     "rest_16th",  # 19
+#     "rest_16th.",  # 20
+#     "rest_whole",  # 21
+#     "rest_whole.",  # 22
+#     "timeSignature-4/4",  # 23
+# ]
+
+
 char_to_int_mapping = [
     "|",  # 0
     "barline",  # 1
     "clef-percussion",  # 2
-    "note-eighth",  # 3
-    "note-eighth.",  # 4
-    "note-half",  # 5
-    "note-half.",  # 6
-    "note-quarter",  # 7
-    "note-quarter.",  # 8
-    "note-16th",  # 9
-    "note-16th.",  # 10
-    "note-whole",  # 11
-    "note-whole.",  # 12
+    "timeSignature-4/4",  # 3
+    # 1
+    "note-D4_eighth",
+    "note-D4_eighth.",
+    "note-D4_half",
+    "note-D4_half.",
+    "note-D4_quarter",
+    "note-D4_quarter.",
+    "note-D4_16th",
+    "note-D4_16th.",
+    "note-D4_whole",
+    "note-D4_whole.",
+    # 2
+    "note-E4_eighth",
+    "note-E4_eighth.",
+    "note-E4_half",
+    "note-E4_half.",
+    "note-E4_quarter",
+    "note-E4_quarter.",
+    "note-E4_16th",
+    "note-E4_16th.",
+    "note-E4_whole",
+    "note-E4_whole.",
+    # 3
+    "note-F4_eighth",
+    "note-F4_eighth.",
+    "note-F4_half",
+    "note-F4_half.",
+    "note-F4_quarter",
+    "note-F4_quarter.",
+    "note-F4_16th",
+    "note-F4_16th.",
+    "note-F4_whole",
+    "note-F4_whole.",
+    # 4
+    "note-G4_eighth",
+    "note-G4_eighth.",
+    "note-G4_half",
+    "note-G4_half.",
+    "note-G4_quarter",
+    "note-G4_quarter.",
+    "note-G4_16th",
+    "note-G4_16th.",
+    "note-G4_whole",
+    "note-G4_whole.",
+    # 5
+    "note-A4_eighth",
+    "note-A4_eighth.",
+    "note-A4_half",
+    "note-A4_half.",
+    "note-A4_quarter",
+    "note-A4_quarter.",
+    "note-A4_16th",
+    "note-A4_16th.",
+    "note-A4_whole",
+    "note-A4_whole.",
+    # 6
+    "note-B4_eighth",
+    "note-B4_eighth.",
+    "note-B4_half",
+    "note-B4_half.",
+    "note-B4_quarter",
+    "note-B4_quarter.",
+    "note-B4_16th",
+    "note-B4_16th.",
+    "note-B4_whole",
+    "note-B4_whole.",
+    # 7
+    "note-C5_eighth",
+    "note-C5_eighth.",
+    "note-C5_half",
+    "note-C5_half.",
+    "note-C5_quarter",
+    "note-C5_quarter.",
+    "note-C5_16th",
+    "note-C5_16th.",
+    "note-C5_whole",
+    "note-C5_whole.",
+    # 8
+    "note-D5_eighth",
+    "note-D5_eighth.",
+    "note-D5_half",
+    "note-D5_half.",
+    "note-D5_quarter",
+    "note-D5_quarter.",
+    "note-D5_16th",
+    "note-D5_16th.",
+    "note-D5_whole",
+    "note-D5_whole.",
+    # 9
+    "note-E5_eighth",
+    "note-E5_eighth.",
+    "note-E5_half",
+    "note-E5_half.",
+    "note-E5_quarter",
+    "note-E5_quarter.",
+    "note-E5_16th",
+    "note-E5_16th.",
+    "note-E5_whole",
+    "note-E5_whole.",
+    # 10
+    "note-F5_eighth",
+    "note-F5_eighth.",
+    "note-F5_half",
+    "note-F5_half.",
+    "note-F5_quarter",
+    "note-F5_quarter.",
+    "note-F5_16th",
+    "note-F5_16th.",
+    "note-F5_whole",
+    "note-F5_whole.",
+    # 11
+    "note-G5_eighth",
+    "note-G5_eighth.",
+    "note-G5_half",
+    "note-G5_half.",
+    "note-G5_quarter",
+    "note-G5_quarter.",
+    "note-G5_16th",
+    "note-G5_16th.",
+    "note-G5_whole",
+    "note-G5_whole.",
+    # 12
+    "note-A5_eighth",
+    "note-A5_eighth.",
+    "note-A5_half",
+    "note-A5_half.",
+    "note-A5_quarter",
+    "note-A5_quarter.",
+    "note-A5_16th",
+    "note-A5_16th.",
+    "note-A5_whole",
+    "note-A5_whole.",
+    # 13
+    "note-B5_eighth",
+    "note-B5_eighth.",
+    "note-B5_half",
+    "note-B5_half.",
+    "note-B5_quarter",
+    "note-B5_quarter.",
+    "note-B5_16th",
+    "note-B5_16th.",
+    "note-B5_whole",
+    "note-B5_whole.",
+    #
     "rest_eighth",  # 13
     "rest_eighth.",  # 14
     "rest_half",  # 15
@@ -46,8 +209,8 @@ char_to_int_mapping = [
     "rest_16th.",  # 20
     "rest_whole",  # 21
     "rest_whole.",  # 22
-    "timeSignature-4/4",  # 23
 ]
+
 
 pitch_to_int_mapping = [
     "|",  # 1
@@ -70,20 +233,16 @@ pitch_to_int_mapping = [
 
 # 문자를 숫자로 변환
 char_to_num = layers.StringLookup(vocabulary=list(char_to_int_mapping), mask_token=None)
-# print(char_to_num.get_vocabulary())
-# test=["clef-percussion","note-eighth","|","note-eighth", "note-eighth", "note-eighth|note-eighth", "rest_whole"]
-# print(char_to_num(test))
-pitch_char_to_num = layers.StringLookup(
-    vocabulary=list(pitch_to_int_mapping), mask_token=None
-)
-
+# pitch_char_to_num = layers.StringLookup(
+#     vocabulary=list(pitch_to_int_mapping), mask_token=None
+# )
 # 숫자를 문자로 변환
 num_to_char = layers.StringLookup(
     vocabulary=char_to_num.get_vocabulary(), mask_token=None, invert=True
 )
-num_to_pitch_char = layers.StringLookup(
-    vocabulary=pitch_char_to_num.get_vocabulary(), mask_token=None, invert=True
-)
+# num_to_pitch_char = layers.StringLookup(
+#     vocabulary=pitch_char_to_num.get_vocabulary(), mask_token=None, invert=True
+# )
 
 
 class StaffToScore(object):
@@ -91,7 +250,7 @@ class StaffToScore(object):
         self.args = args
         self.model = DDMOMR(args)
         self.checkpoint_path = f"{self.args.filepaths.checkpoints}"
-        self.prediction_model = self.load_prediction_model(self.checkpoint_path)
+        # self.prediction_model = self.load_prediction_model(self.checkpoint_path)
 
     def load_x_y(self, title_path):
         """ """
@@ -159,7 +318,7 @@ class StaffToScore(object):
         img = tf.transpose(img, perm=[1, 0, 2])
 
         # 6. 라벨 값의 문자를 숫자로 변환
-        label_r = pitch_char_to_num(tf.strings.split(label))
+        label_r = char_to_num(tf.strings.split(label))
 
         # 7. 딕셔너리 형태로 return
         return {"image": img, "label": label_r}
@@ -194,17 +353,18 @@ class StaffToScore(object):
             y_preprocessed = y_preprocessed.replace(" ", "+").replace("\t", "+")
 
             for _, img in x_preprocessed:
-                print("-- resize 후 : ", img.shape)
+                # print("-- resize 후 : ", img.shape)
                 x_preprocessed_list.append(img)
                 y_preprocessed_list.append(y_preprocessed)
 
         print(
             "전처리 후 x, y 개수: ", len(x_preprocessed_list), len(y_preprocessed_list)
         )
-        result_lift, result_pitch, result_rhythm, result_note = (
-            self.map_notes2pitch_rhythm_lift_note(y_preprocessed_list)
-        )
-        pitch_labels = result_pitch
+        result_note = self.map_notes2pitch_rhythm_lift_note(y_preprocessed_list)
+
+        print(result_note)
+
+        pitch_labels = result_note
         return x_preprocessed_list, pitch_labels
 
     def load_test_data(self):
@@ -217,7 +377,7 @@ class StaffToScore(object):
         for idx in range(len(x_raw_path_list)):
             x_raw_path = x_raw_path_list[idx]
             y_raw_path = y_raw_path_list[idx]
-            print(">>>>>>>>>>>>>>>>>>>>", x_raw_path)
+            # print(">>>>>>>>>>>>>>>>>>>>", x_raw_path)
 
             biImg = Image2Augment.readimg(x_raw_path)
             biImg = 255 - biImg
@@ -231,17 +391,15 @@ class StaffToScore(object):
         print(
             "전처리 후 x, y 개수: ", len(x_preprocessed_list), len(y_preprocessed_list)
         )
-        result_lift, result_pitch, result_rhythm, result_note = (
-            self.map_notes2pitch_rhythm_lift_note(y_preprocessed_list)
-        )
-        pitch_labels = result_pitch
+        result_note = self.map_notes2pitch_rhythm_lift_note(y_preprocessed_list)
+        pitch_labels = result_note
         return x_preprocessed_list, pitch_labels
 
     def predict(self, biImg_list):
         # 아래 과정을 거친 rgb 이미지 데이터를 여러 개 예측
         # biImg = Image2Augment.readimg(x_raw_path)
         # biImg = 255 - biImg
-        print(">>>>>>>>>>>>>>>>>>>>", biImg_list)
+        # print(">>>>>>>>>>>>>>>>>>>>", biImg_list)
         x_preprocessed_list = []
 
         for img in biImg_list:
@@ -281,8 +439,8 @@ class StaffToScore(object):
                 ax[i].imshow(img, cmap="gray")
                 ax[i].set_title(f"{title_pred}")
                 ax[i].axis("off")
-        os.makedirs(f"model-predict/", exist_ok=True)
-        plt.savefig(f"model-predict/pred.png")
+        os.makedirs(f"predict-result/", exist_ok=True)
+        plt.savefig(f"predict-result/pred.png")
         plt.show()
 
     def training(self):
@@ -314,28 +472,28 @@ class StaffToScore(object):
             .prefetch(buffer_size=tf.data.AUTOTUNE)
         )
 
-        # _, ax = plt.subplots(4, 1, figsize=(16, 5))
-        # for batch in pitch_train_dataset.take(1):
-        #     images = batch["image"]
-        #     labels = batch["label"]
+        _, ax = plt.subplots(4, 1)
+        for batch in pitch_train_dataset.take(1):
+            images = batch["image"]
+            labels = batch["label"]
 
-        #     print(">>> 데이터셋 랜덤 확인")
+            print(">>> 데이터셋 랜덤 확인")
 
-        #     for i in range(4):
-        #         img = (images[i] * 255).numpy().astype("uint8")
-        #         label = (
-        #             tf.strings.reduce_join(num_to_pitch_char(labels[i]))
-        #             .numpy()
-        #             .decode("utf-8")
-        #         )
-        #         # label = labels[i]
-        #         print(labels[i])
-        #         ax[i].imshow(img[:, :, 0].T, cmap="gray")
-        #         ax[i].set_title(label)
-        #         ax[i].axis("off")
-        # os.makedirs(f"dataset-output/", exist_ok=True)
-        # plt.savefig(f"dataset-output/dataset.png")
-        # plt.show()
+            for i in range(4):
+                img = (images[i] * 255).numpy().astype("uint8")
+                label = (
+                    tf.strings.reduce_join(num_to_char(labels[i]))
+                    .numpy()
+                    .decode("utf-8")
+                )
+                # label = labels[i]
+                # print(labels[i])
+                ax[i].imshow(img[:, :, 0].T, cmap="gray")
+                ax[i].set_title(label)
+                ax[i].axis("off")
+        os.makedirs(f"dataset-output/", exist_ok=True)
+        plt.savefig(f"dataset-output/dataset-1.png")
+        plt.show()
 
         # Get the model
         model = self.model.build_model()
@@ -374,6 +532,56 @@ class StaffToScore(object):
             callbacks=[early_stopping, checkpoint_callback],
         )
 
+        # 예측 모델 만들기
+        prediction_model = keras.models.Model(
+            model.get_layer(name="image").input,
+            model.get_layer(name="dense2").output,
+        )
+
+        #  validation dataset에서 하나의 배치를 시각화
+        for batch in pitch_validation_dataset.take(1):
+            batch_images = batch["image"]
+            batch_labels = batch["label"]
+
+            print("-- 예측 --")
+            preds = prediction_model(batch_images)
+            pred_texts, y_pred = self.pitch_decode_batch_predictions(preds)
+
+            orig_texts = []
+            y_true = []
+            print("-- 실제 정답 --")
+            for label in batch_labels:
+                # print(label)
+                y_true.append(label.numpy().tolist())
+                label = (
+                    tf.strings.join(num_to_char(label), separator=" ")
+                    .numpy()
+                    .decode("utf-8")
+                    .replace("[UNK]", "")
+                )
+                orig_texts.append(label)
+
+            # SER 계산
+            print(tf.constant(y_true))
+            print(tf.constant(y_pred))
+            # ser = symbol_error_rate(tf.constant(y_true), tf.constant(y_pred))
+            # print("Symbol Error Rate:", ser.numpy())
+
+            # _, ax = plt.subplots(4, 4, figsize=(15, 5))
+            b_l = len(pred_texts)
+            _, ax = plt.subplots(b_l, 1, figsize=(80, 50))
+            for i in range(b_l):
+                img = (batch_images[i, :, :, 0] * 255).numpy().astype(np.uint8)
+                img = img.T
+                title_pred = f"Prediction: {pred_texts[i]}"
+                title_true = f"Ground Truth: {orig_texts[i]}"
+                ax[i].imshow(img, cmap="gray")
+                ax[i].set_title(f"{title_true}\n{title_pred}")
+                ax[i].axis("off")
+        os.makedirs(f"test-result/", exist_ok=True)
+        plt.savefig(f"test-result/pred.png")
+        plt.show()
+
     def load_prediction_model(self, checkpoint_path):
         model = self.model.build_model()
         check = tf.train.latest_checkpoint(checkpoint_path)
@@ -399,10 +607,10 @@ class StaffToScore(object):
             # print(res)
             y_pred.append(res.numpy().tolist())
             res = (
-                tf.strings.reduce_join(num_to_pitch_char(res))
+                tf.strings.join(num_to_char(res), separator=" ")
                 .numpy()
                 .decode("utf-8")
-                .strip("[UNK]")
+                .replace("[UNK]", "")
             )
             output_text.append(res)
         return output_text, y_pred
@@ -435,10 +643,10 @@ class StaffToScore(object):
                 # print(label)
                 y_true.append(label.numpy().tolist())
                 label = (
-                    tf.strings.reduce_join(num_to_pitch_char(label))
+                    tf.strings.join(num_to_char(label), separator=" ")
                     .numpy()
                     .decode("utf-8")
-                    .strip("[UNK]")
+                    .replace("[UNK]", "")
                 )
                 orig_texts.append(label)
 
@@ -459,8 +667,8 @@ class StaffToScore(object):
                 ax[i].imshow(img, cmap="gray")
                 ax[i].set_title(f"{title_true}\n{title_pred}")
                 ax[i].axis("off")
-        os.makedirs(f"model-predict/", exist_ok=True)
-        plt.savefig(f"model-predict/pred.png")
+        os.makedirs(f"predict-result/", exist_ok=True)
+        plt.savefig(f"predict-result/pred.png")
         plt.show()
 
     def preprocessing(self, rgb):
@@ -472,118 +680,19 @@ class StaffToScore(object):
         augment_result = Image2Augment.process_image2augment(self.args, rgb)
         resize_result = []
         for typename, img in augment_result:
-            print("-- resize 전 : ", img.shape)
+            # print("-- resize 전 : ", img.shape)
             resizeimg = Image2Augment.resizeimg(self.args, img)
             resize_result.append((typename, resizeimg))
 
         # (확인용) 전처리 적용된 거 저장
-        # for typename, img in resize_result:
-        #     Image2Augment.save_augment_png("augment-output", img, typename)
+        for typename, img in augment_result:
+            Image2Augment.save_augment_png("augment-output", img, typename)
+
+        # (확인용) 전처리 적용된 거 저장
+        for typename, img in resize_result:
+            Image2Augment.save_augment_png("zeropadding-output", img, typename)
 
         return resize_result
-
-    # 각 token에 맞는 string list로 만들기
-    def map_pitch(self, note):
-        pitch_mapping = {
-            "nonote": 0,
-            "note-D4": 1,
-            "note-E4": 2,
-            "note-F4": 3,
-            "note-G4": 4,
-            "note-A4": 5,
-            "note-B4": 6,
-            "note-C5": 7,
-            "note-D5": 8,
-            "note-E5": 9,
-            "note-F5": 10,
-            "note-G5": 11,
-            "note-A5": 12,
-            "note-B5": 13,
-            "<unk>": 14,
-        }
-        return "nonote" if note not in pitch_mapping else note
-
-    def map_rhythm(self, note):
-        duration_mapping = {
-            "[PAD]": 0,
-            "+": 1,
-            "|": 2,
-            "barline": 3,
-            "clef-percussion": 4,
-            "note-eighth": 5,
-            "note-eighth.": 6,
-            "note-half": 7,
-            "note-half.": 8,
-            "note-quarter": 9,
-            "note-quarter.": 10,
-            "note-16th": 11,
-            "note-16th.": 12,
-            "note-whole": 13,
-            "note-whole.": 14,
-            "rest_eighth": 15,
-            "rest-eighth.": 16,
-            "rest_half": 17,
-            "rest_half.": 18,
-            "rest_quarter": 19,
-            "rest_quarter.": 20,
-            "rest_16th": 21,
-            "rest_16th.": 22,
-            "rest_whole": 23,
-            "rest_whole.": 24,
-            "timeSignature-4/4": 25,
-        }
-        return note if note in duration_mapping else "<unk>"
-
-    def map_lift(self, note):
-        lift_mapping = {
-            # "nonote"    : 0,
-            "lift_null": 1,
-            "lift_##": 2,
-            "lift_#": 3,
-            "lift_bb": 4,
-            "lift_b": 5,
-            "lift_N": 6,
-        }
-        return "nonote" if note not in lift_mapping else note
-
-    def symbol2pitch_rhythm_lift(self, symbol_lift, symbol_pitch, symbol_rhythm):
-        return (
-            self.map_lift(symbol_lift),
-            self.map_pitch(symbol_pitch),
-            self.map_rhythm(symbol_rhythm),
-        )
-
-    def note2pitch_rhythm_lift(self, note):
-        # note-G#3_eighth
-        note_split = note.split("_")  # (note-G#3) (eighth)
-        note_pitch_lift = note_split[:1][0]
-        note_rhythm = note_split[1:][0]
-        rhythm = f"note-{note_rhythm}"
-        # print("-- note_rhythm: ", rhythm)
-
-        note_note, pitch_lift = note_pitch_lift.split("-")  # (note) (G#3)
-        if len(pitch_lift) > 2:
-            pitch = f"note-{pitch_lift[0]+pitch_lift[-1]}"  # (G3)
-            lift = f"lift_{pitch_lift[1:-1]}"
-        else:
-            pitch = f"note-{pitch_lift}"
-            lift = f"lift_null"
-        # print("-- note_pitch_lift: ", pitch, lift)
-        return self.symbol2pitch_rhythm_lift(lift, pitch, rhythm)
-
-    def rest2pitch_rhythm_lift(self, rest):
-        # rest-quarter
-        return self.symbol2pitch_rhythm_lift("nonote", "nonote", rest)
-
-    def map_pitch2isnote(self, pitch_note):
-        group_notes = []
-        note_split = pitch_note.split("+")
-        for note_s in note_split:
-            if "nonote" in note_s:
-                group_notes.append("nonote")
-            elif "note-" in note_s:
-                group_notes.append("note")
-        return "+".join(group_notes)
 
     def map_notes2pitch_rhythm_lift_note(self, note_list):
         result_lift = []
@@ -596,6 +705,7 @@ class StaffToScore(object):
             group_pitch = []
             group_rhythm = []
             group_notes_token_len = 0
+            group_note = []
 
             # 우선 +로 나누고, 안에 | 있는 지 확인해서 먼저 붙이기
             # note-G#3_eighth + note-G3_eighth + note-G#3_eighth|note-G#3_eighth + rest-quarter
@@ -605,28 +715,31 @@ class StaffToScore(object):
                     mapped_lift_chord = []
                     mapped_pitch_chord = []
                     mapped_rhythm_chord = []
+                    mapped_note_chord = []
 
                     # note-G#3_eighth|note-G#3_eighth
-                    note_split_chord = note_s.split(
-                        "|"
-                    )  # (note-G#3_eighth) (note-G#3_eighth)
-                    for idx, note_s_c in enumerate(note_split_chord):
-                        chord_lift, chord_pitch, chord_rhythm = (
-                            self.note2pitch_rhythm_lift(note_s_c)
-                        )
+                    # (note-G#3_eighth) (note-G#3_eighth)
+                    note_split_chord = note_s.split("|")
+                    mapped_note_chord = note_split_chord
+                    # for idx, note_s_c in enumerate(note_split_chord):
+                    #     chord_lift, chord_pitch, chord_rhythm = (
+                    #         self.note2pitch_rhythm_lift(note_s_c)
+                    #     )
 
-                        mapped_lift_chord.append(chord_lift)
-                        mapped_pitch_chord.append(chord_pitch)
-                        mapped_rhythm_chord.append(chord_rhythm)
+                    #     mapped_lift_chord.append(chord_lift)
+                    #     mapped_pitch_chord.append(chord_pitch)
+                    #     mapped_rhythm_chord.append(chord_rhythm)
 
-                        # --> '|' 도 token이기 때문에 lift, pitch엔 nonote 추가해주기
-                        if idx != len(note_split_chord) - 1:
-                            mapped_lift_chord.append("nonote")
-                            # mapped_pitch_chord.append("nonote")
+                    #     # --> '|' 도 token이기 때문에 lift, pitch엔 nonote 추가해주기
+                    #     if idx != len(note_split_chord) - 1:
+                    #         mapped_lift_chord.append("nonote")
+                    #         # mapped_pitch_chord.append("nonote")
 
-                    group_lift.append(" ".join(mapped_lift_chord))
-                    group_pitch.append(" | ".join(mapped_pitch_chord))
-                    group_rhythm.append(" | ".join(mapped_rhythm_chord))
+                    # group_lift.append(" ".join(mapped_lift_chord))
+                    # group_pitch.append(" | ".join(mapped_pitch_chord))
+                    # group_rhythm.append(" | ".join(mapped_rhythm_chord))
+
+                    group_note.append(" | ".join(mapped_note_chord))
 
                     # --> '|' 도 token이기 때문에 추가된 token 개수 더하기
                     # 동시에 친 걸 하나의 string으로 해버리는 거니까 주의하기
@@ -634,35 +747,40 @@ class StaffToScore(object):
                         len(note_split_chord) + len(note_split_chord) - 1
                     )
 
-                elif "note" in note_s:
-                    if "_" in note_s:
-                        # note-G#3_eighth
-                        note2lift, note2pitch, note2rhythm = (
-                            self.note2pitch_rhythm_lift(note_s)
-                        )
-                        group_lift.append(note2lift)
-                        group_pitch.append(note2pitch)
-                        group_rhythm.append(note2rhythm)
-                        group_notes_token_len += 1
+                # elif "note" in note_s:
+                #     if "_" in note_s:
+                #         # # note-G#3_eighth
+                #         # note2lift, note2pitch, note2rhythm = (
+                #         #     self.note2pitch_rhythm_lift(note_s)
+                #         # )
+                #         # group_lift.append(note2lift)
+                #         # group_pitch.append(note2pitch)
+                #         # group_rhythm.append(note2rhythm)
 
-                elif "rest" in note_s:
-                    if "_" in note_s:
-                        # rest_quarter
-                        rest2lift, rest2pitch, rest2rhythm = (
-                            self.rest2pitch_rhythm_lift(note_s)
-                        )
-                        group_lift.append(rest2lift)
-                        group_pitch.append(rest2pitch)
-                        group_rhythm.append(rest2rhythm)
-                        group_notes_token_len += 1
+                #         group_notes_token_len += 1
+
+                # elif "rest" in note_s:
+                #     if "_" in note_s:
+                #         # rest_quarter
+                #         # rest2lift, rest2pitch, rest2rhythm = (
+                #         #     self.rest2pitch_rhythm_lift(note_s)
+                #         # )
+                #         # group_lift.append(rest2lift)
+                #         # group_pitch.append(rest2pitch)
+                #         # group_rhythm.append(rest2rhythm)
+                #         group_notes_token_len += 1
+                # else:
+                #     # # clef-F4+keySignature-AM+timeSignature-12/8
+                #     # symbol2lift, symbol2pitch, symbol2rhythm = (
+                #     #     self.symbol2pitch_rhythm_lift("nonote", "nonote", note_s)
+                #     # )
+                #     # group_lift.append(symbol2lift)
+                #     # group_pitch.append(symbol2pitch)
+                #     # group_rhythm.append(symbol2rhythm)
+                #     group_notes_token_len += 1
+
                 else:
-                    # clef-F4+keySignature-AM+timeSignature-12/8
-                    symbol2lift, symbol2pitch, symbol2rhythm = (
-                        self.symbol2pitch_rhythm_lift("nonote", "nonote", note_s)
-                    )
-                    group_lift.append(symbol2lift)
-                    group_pitch.append(symbol2pitch)
-                    group_rhythm.append(symbol2rhythm)
+                    group_note.append(note_s)
                     group_notes_token_len += 1
 
             toks_len = group_notes_token_len
@@ -681,15 +799,20 @@ class StaffToScore(object):
             emb_rhythm = " ".join(group_rhythm)
             # emb_rhythm+="[EOS]"
 
+            emb_note = " ".join(group_note)
+
             # 뒤에 남은 건 패딩
             if toks_len < self.args.max_seq_len:
                 for _ in range(self.args.max_seq_len - toks_len):
-                    emb_lift += " [PAD]"
-                    emb_pitch += " [PAD]"
-                    emb_rhythm += " [PAD]"
+                    # emb_lift += " [PAD]"
+                    # emb_pitch += " [PAD]"
+                    # emb_rhythm += " [PAD]"
+                    emb_note += " [PAD]"
 
-            result_lift.append(emb_lift)
-            result_pitch.append(emb_pitch)
-            result_rhythm.append(emb_rhythm)
-            result_note.append(self.map_pitch2isnote(emb_pitch))
-        return result_lift, result_pitch, result_rhythm, result_note
+            # result_lift.append(emb_lift)
+            # result_pitch.append(emb_pitch)
+            # result_rhythm.append(emb_rhythm)
+            # result_note.append(self.map_pitch2isnote(emb_pitch))
+
+            result_note.append(emb_note)
+        return result_note

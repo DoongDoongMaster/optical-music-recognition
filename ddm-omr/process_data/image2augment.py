@@ -26,10 +26,32 @@ class Image2Augment:
         input : rgb image
         return : binary image
         """
-        img = cv2.imread(img)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # -- 설정 임곗값(retval), 결과 이미지(biImg)
-        # -- 임곗값을 초과할 경우 0, 아닐 경우 maxval
+        # Read the image with unchanged flag to handle alpha channel if present
+        img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
+
+        if img is None:
+            raise RuntimeError("Image not found or unable to load.")
+
+        if img.shape[-1] == 4:
+            # Image has an alpha channel (RGBA)
+            alpha_channel = img[:, :, 3]
+            # Invert alpha channel to create mask
+            img = 255 - alpha_channel
+            # Convert single channel mask to 3-channel grayscale
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        elif img.shape[-1] == 3:
+            # Image is RGB
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        else:
+            raise RuntimeError("Unsupported image type!")
+
+        # Convert to grayscale if not already (RGB case)
+        if len(img.shape) == 3:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = img
+
+        # Apply binary inverse thresholding
         _, biImg = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
         return biImg
 
@@ -91,8 +113,8 @@ class Image2Augment:
         distorted_x = np.clip(x + dx, 0, width - 1)
         distorted_y = np.clip(y + dy, 0, height - 1)
 
-        print("--", distorted_x.shape)
-        print("--", distorted_y.shape)
+        # print("--", distorted_x.shape)
+        # print("--", distorted_y.shape)
 
         distorted_image = map_coordinates(
             image,
@@ -131,13 +153,13 @@ class Image2Augment:
             f"{dir_path}/{augment_type}_{date_time}.png",
             image,
         )
-        print(augment_type, "--AUGMENT shape: ", image.shape)
+        # print(augment_type, "--AUGMENT shape: ", image.shape)
 
     @staticmethod
     def resizeimg(args, img):
         # Input: 2D Image
         h, w = img.shape
-        print(">>>>>>>>>>>>>>>>>>>>>>>")
+        # print(">>>>>>>>>>>>>>>>>>>>>>>")
 
         # 이미지의 가로세로 비율 계산
         ratio = min(args.max_width / w, args.max_height / h)
