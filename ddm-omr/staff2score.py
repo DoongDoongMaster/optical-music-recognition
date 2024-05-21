@@ -13,6 +13,22 @@ from process_data.image2augment import Image2Augment
 from util import Util
 from model.ddm_omr_arch import DDMOMR, CTCLayer
 
+
+# # GPU:1만 사용하도록 환경 변수 설정
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+# # 선택된 GPU 확인 및 메모리 증가 설정
+# gpus = tf.config.experimental.list_physical_devices("GPU")
+# if gpus:
+#     try:
+#         # GPU 1의 메모리 증가 설정
+#         tf.config.experimental.set_memory_growth(gpus[0], True)
+#         logical_gpus = tf.config.experimental.list_logical_devices("GPU")
+#         print(f"Physical GPUs: {len(gpus)}, Logical GPUs: {len(logical_gpus)}")
+#     except RuntimeError as e:
+#         print(e)
+
+
 char_to_int_mapping = [
     "|",  # 0
     "barline",  # 1
@@ -29,6 +45,7 @@ char_to_int_mapping = [
     "note-D4_16th.",
     "note-D4_whole",
     "note-D4_whole.",
+    "note-D4_32nd",
     # 2
     "note-E4_eighth",
     "note-E4_eighth.",
@@ -40,6 +57,7 @@ char_to_int_mapping = [
     "note-E4_16th.",
     "note-E4_whole",
     "note-E4_whole.",
+    "note-E4_32nd",
     # 3
     "note-F4_eighth",
     "note-F4_eighth.",
@@ -51,6 +69,7 @@ char_to_int_mapping = [
     "note-F4_16th.",
     "note-F4_whole",
     "note-F4_whole.",
+    "note-F4_32nd",
     # 4
     "note-G4_eighth",
     "note-G4_eighth.",
@@ -62,6 +81,7 @@ char_to_int_mapping = [
     "note-G4_16th.",
     "note-G4_whole",
     "note-G4_whole.",
+    "note-G4_32nd",
     # 5
     "note-A4_eighth",
     "note-A4_eighth.",
@@ -73,6 +93,7 @@ char_to_int_mapping = [
     "note-A4_16th.",
     "note-A4_whole",
     "note-A4_whole.",
+    "note-A4_32nd",
     # 6
     "note-B4_eighth",
     "note-B4_eighth.",
@@ -84,6 +105,7 @@ char_to_int_mapping = [
     "note-B4_16th.",
     "note-B4_whole",
     "note-B4_whole.",
+    "note-B4_32nd",
     # 7
     "note-C5_eighth",
     "note-C5_eighth.",
@@ -95,6 +117,7 @@ char_to_int_mapping = [
     "note-C5_16th.",
     "note-C5_whole",
     "note-C5_whole.",
+    "note-C5_32nd",
     # 8
     "note-D5_eighth",
     "note-D5_eighth.",
@@ -106,6 +129,7 @@ char_to_int_mapping = [
     "note-D5_16th.",
     "note-D5_whole",
     "note-D5_whole.",
+    "note-D5_32nd",
     # 9
     "note-E5_eighth",
     "note-E5_eighth.",
@@ -117,6 +141,7 @@ char_to_int_mapping = [
     "note-E5_16th.",
     "note-E5_whole",
     "note-E5_whole.",
+    "note-E5_32nd",
     # 10
     "note-F5_eighth",
     "note-F5_eighth.",
@@ -128,6 +153,7 @@ char_to_int_mapping = [
     "note-F5_16th.",
     "note-F5_whole",
     "note-F5_whole.",
+    "note-F5_32nd",
     # 11
     "note-G5_eighth",
     "note-G5_eighth.",
@@ -139,6 +165,7 @@ char_to_int_mapping = [
     "note-G5_16th.",
     "note-G5_whole",
     "note-G5_whole.",
+    "note-G5_32nd",
     # 12
     "note-A5_eighth",
     "note-A5_eighth.",
@@ -150,6 +177,7 @@ char_to_int_mapping = [
     "note-A5_16th.",
     "note-A5_whole",
     "note-A5_whole.",
+    "note-A5_32nd",
     # 13
     "note-B5_eighth",
     "note-B5_eighth.",
@@ -161,6 +189,7 @@ char_to_int_mapping = [
     "note-B5_16th.",
     "note-B5_whole",
     "note-B5_whole.",
+    "note-B5_32nd",
     #
     "rest_eighth",  # 13
     "rest_eighth.",  # 14
@@ -172,6 +201,7 @@ char_to_int_mapping = [
     "rest_16th.",  # 20
     "rest_whole",  # 21
     "rest_whole.",  # 22
+    "rest_32nd",  # 23
 ]
 
 # 문자를 숫자로 변환
@@ -354,7 +384,7 @@ class StaffToScore(object):
         for idx in range(len(x_raw_path_list)):
             x_raw_path = x_raw_path_list[idx]
             y_raw_path = y_raw_path_list[idx]
-            # print(">>>>>>>>>>>>>>>>>>>>", x_raw_path)
+            print(">>>>>>>>>>>>>>>>>>>>", x_raw_path)
 
             biImg = Image2Augment.readimg(x_raw_path)
             biImg = 255 - biImg
@@ -369,8 +399,7 @@ class StaffToScore(object):
             "전처리 후 x, y 개수: ", len(x_preprocessed_list), len(y_preprocessed_list)
         )
         result_note = self.map_notes2pitch_rhythm_lift_note(y_preprocessed_list)
-        pitch_labels = result_note
-        return x_preprocessed_list, pitch_labels
+        return x_preprocessed_list, result_note
 
     def model_predict(self, x_preprocessed_list):
         # 리스트를 tf.Tensor로 변환
@@ -397,7 +426,7 @@ class StaffToScore(object):
             all_images.extend(batch_images)
 
         # 예측 결과 시각화 및 저장
-        b_l = len(all_pred_texts)
+        b_l = min(len(pred_texts), 10)
         _, ax = plt.subplots(b_l, 1, figsize=(24, 20))
         # Ensure ax is always iterable
         if b_l == 1:
@@ -449,7 +478,7 @@ class StaffToScore(object):
             .prefetch(buffer_size=tf.data.AUTOTUNE)
         )
 
-        _, ax = plt.subplots(4, 1)
+        _, ax = plt.subplots(4, 1, figsize=(24, 20))
         for batch in pitch_train_dataset.take(1):
             images = batch["image"]
             labels = batch["label"]
@@ -477,7 +506,7 @@ class StaffToScore(object):
         model.summary()
 
         epochs = self.args.epoch
-        early_stopping_patience = 10
+        early_stopping_patience = 30
         # early stopping 지정
         early_stopping = keras.callbacks.EarlyStopping(
             monitor="val_loss",
@@ -491,6 +520,7 @@ class StaffToScore(object):
             validation_data=pitch_validation_dataset,
             epochs=epochs,
             callbacks=[early_stopping],
+            batch_size=self.args.batch_size,
         )
 
         # save
@@ -528,8 +558,8 @@ class StaffToScore(object):
             # SER 계산
             print(tf.constant(y_true))
             print(tf.constant(y_pred))
-            # ser = symbol_error_rate(tf.constant(y_true), tf.constant(y_pred))
-            # print("Symbol Error Rate:", ser.numpy())
+            ser = self.symbol_error_rate(tf.constant(y_true), tf.constant(y_pred))
+            print("Symbol Error Rate:", ser.numpy())
 
             # _, ax = plt.subplots(4, 4, figsize=(15, 5))
             b_l = len(pred_texts)
@@ -622,7 +652,7 @@ class StaffToScore(object):
             # print("Symbol Error Rate:", ser.numpy())
 
             # _, ax = plt.subplots(4, 4, figsize=(15, 5))
-            b_l = len(pred_texts)
+            b_l = min(len(pred_texts), 10)
             _, ax = plt.subplots(b_l, 1, figsize=(24, 20))
             for i in range(b_l):
                 img = (batch_images[i, :, :, 0] * 255).numpy().astype(np.uint8)
@@ -650,13 +680,13 @@ class StaffToScore(object):
             resizeimg = Image2Augment.resizeimg(self.args, img)
             resize_result.append((typename, resizeimg))
 
-        # (확인용) 전처리 적용된 거 저장
-        for typename, img in augment_result:
-            Image2Augment.save_augment_png("augment-output", img, typename)
+        # # (확인용) 전처리 적용된 거 저장
+        # for typename, img in augment_result:
+        #     Image2Augment.save_augment_png("augment-output", img, typename)
 
-        # (확인용) 전처리 적용된 거 저장
-        for typename, img in resize_result:
-            Image2Augment.save_augment_png("zeropadding-output", img, typename)
+        # # (확인용) 전처리 적용된 거 저장
+        # for typename, img in resize_result:
+        #     Image2Augment.save_augment_png("zeropadding-output", img, typename)
 
         return resize_result
 
@@ -697,3 +727,18 @@ class StaffToScore(object):
                     emb_note += " [PAD]"
             result_note.append(emb_note)
         return result_note
+
+    def symbol_error_rate(self, y_true, y_pred):
+        # Find indices of padding (-1)
+        padding_indices = tf.where(tf.equal(y_true, -1))
+        
+        # Mask padding indices
+        padding_values = tf.zeros_like(padding_indices[:, 0], dtype=tf.int32)
+        y_true = tf.tensor_scatter_nd_update(y_true, padding_indices, padding_values)
+        y_pred = tf.tensor_scatter_nd_update(y_pred, padding_indices, padding_values)
+        
+        # Compute symbol error rate
+        errors = tf.not_equal(y_true, y_pred)
+        ser = tf.reduce_mean(tf.cast(errors, tf.float32))
+        
+        return ser

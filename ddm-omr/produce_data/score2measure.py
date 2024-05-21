@@ -66,6 +66,22 @@ class Score2Measure:
         """
         img = cv2.imread(score_path)
 
+        (h, w) = img.shape[:2]
+        target_width = args.score_width
+
+        # 비율 계산
+        ratio = target_width / float(w)
+        target_height = int(h * ratio)
+
+        # 이미지 리사이즈
+        img = cv2.resize(
+            img, (target_width, target_height), interpolation=cv2.INTER_AREA
+        )
+        # cv2.imwrite(
+        #     f"output.png",
+        #     img,
+        # )
+
         # JSON 파일 읽어오기
         json_path = Util.get_filepath_from_title(args, title, "json")
         with open(json_path, "r") as json_file:
