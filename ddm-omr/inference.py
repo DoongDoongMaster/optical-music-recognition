@@ -18,18 +18,20 @@ staff2score = StaffToScore(args)
 # staff2score.training()
 staff2score.test()
 
-# x_raw_path = [
-#     f"../data/test/Rock-ver_measure_02_2024-05-19_05-31-40.png",
-#     f"../data/test/test_img.png",
-# ]
-# biImg_list = []
+x_raw_path_list = [
+    f"../data/test/Rock-ver_measure_02_2024-05-19_05-31-40.png",
+    f"../data/test/test_img.png",
+]
+x_preprocessed_list = []
+for x_raw_path in x_raw_path_list:
+    biImg = Image2Augment.readimg(x_raw_path)
+    biImg = 255 - biImg
+    x_preprocessed_list.append(Image2Augment.resizeimg(args, biImg))
 
-# for x_raw in x_raw_path:
-#     biImg = Image2Augment.readimg(x_raw)
-#     biImg = 255 - biImg
-#     biImg_list.append(biImg)
+print("전처리 후 x 개수: ", len(x_preprocessed_list))
 
-# staff2score.predict(biImg_list)
 
-sheet2stave = SheetToScore(args)
-sheet2stave.sheet2stave()
+staff2score.model_predict(x_preprocessed_list)
+
+# sheet2stave = SheetToScore(args)
+# sheet2stave.sheet2stave()

@@ -59,10 +59,10 @@ class Image2Augment:
         # for idx, stave in enumerate([biImg]):
         #     date_time = Util.get_datetime()
         #     cv2.imwrite(
-        #         f"../data/processed-feature/stave/Rock-ver/Rock-ver-stave_{idx}_{date_time}.png",
+        #         f"../data/processed-feature/stave/Rock-ver/Rock-ver-stave_{idx+1}_{date_time}.png",
         #         stave,
         #     )
-        #     print(idx, "--shape: ", stave.shape)
+        #     print(idx+1, "--shape: ", stave.shape)
 
         # return 배경이 검정색인 Binary Image
         return biImg

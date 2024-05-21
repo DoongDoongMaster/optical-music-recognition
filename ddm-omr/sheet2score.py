@@ -1,14 +1,19 @@
 import os
+import re
 import cv2
 from util import Util
 
 from process_data.image2augment import Image2Augment
-from produce_data.score2measure import Score2Measure
+import sys
+
+# sys.path.append("~/srv/projects/optical-music-recognition/ddm-omr")
+from staff2score import StaffToScore
 
 
 class SheetToScore(object):
     def __init__(self, args):
         self.args = args
+        self.staff2score = StaffToScore(args)
 
     def extract_segment_from_score(self, biImg):
         """
@@ -87,8 +92,85 @@ class SheetToScore(object):
         stave_list = self.extract_stave_from_score(biImg, cnt, stats)
         return stave_list
 
-    def sheet2stave(self):
-        score_path = f"{self.args.filepaths.raw_path.osmd}/2002-1/2002-1.png"  # -- stave를 추출할 악보
+    def stave2measure(self, stave):
+        # 냅다 일정 width로 나누기엔 크기 차이가 나니까 담겨있는 정보 차이도 날 거임.
+        # stave를 일정 크기로 resize하기 -> height을 맞추기
+        h, w = stave.shape
+        max_h = self.args.max_height
+        max_w = self.args.max_width
 
-        stave_list = self.transform_score2stave(score_path)
-        self.save_stave("2002-1", stave_list)
+        # 이미지의 가로세로 비율 계산
+        new_width = int((max_h / h) * w)
+        resized_stave = cv2.resize(stave, (new_width, max_h))
+
+        result = []
+        start_x = 0  # 현재 이미지의 x 시작점
+        _, r_w = resized_stave.shape
+
+        # 이미지 자르기 및 패딩
+        while start_x < r_w:
+            end_x = min(start_x + max_w, r_w)
+            cropped_image = resized_stave[:, start_x:end_x]
+
+            # 남은 부분이 120 픽셀보다 작으면 패딩을 추가합니다.
+            if end_x - start_x < max_w:
+                padding_needed = max_w - (end_x - start_x)
+                # 오른쪽에 패딩을 추가합니다.
+                cropped_image = cv2.copyMakeBorder(
+                    cropped_image,
+                    0,
+                    0,
+                    0,
+                    padding_needed,
+                    cv2.BORDER_CONSTANT,
+                    value=[0, 0, 0],
+                )
+            result.append(255 - cropped_image)
+
+            start_x += max_w
+
+        return result
+
+    def predict(self, score_path):
+        stave_list = self.transform_score2stave(score_path)  # stave 추출
+        measure_list = []
+        for idx, stave in enumerate(stave_list):
+            measures = self.stave2measure(stave)  # measure 추출
+            measure_list += measures
+
+        # ------------ 전처리 ------------------
+        x_preprocessed_list = []
+        for biImg in measure_list:
+            x_preprocessed_list.append(Image2Augment.resizeimg(self.args, biImg))
+
+        # 함수 정의
+        def process_string(s):
+            # 먼저, | 문자 사이의 공백을 제거
+            s = re.sub(r"\s*\|\s*", "|", s)
+            # 그 외의 공백은 +로 대체
+            s = re.sub(r"\s+", "+", s)
+            if s[-1] == "+":
+                s = s[:-1]
+            return s
+
+        result = self.staff2score.model_predict(x_preprocessed_list)
+        result_list = []
+        for res in result:
+            result_list.append(process_string(res))
+        result = "+".join(result_list)
+        print(">>>>", result)
+
+
+if __name__ == "__main__":
+    from configs import getconfig
+
+    cofigpath = f"workspace/config.yaml"
+    args = getconfig(cofigpath)
+
+    # 1. 예측할 악보
+    score_path = f"{args.filepaths.raw_path.osmd}/Rock-ver/Rock-ver.png"
+
+    handler = SheetToScore(args)
+    predict_result = handler.predict(score_path)
+
+    # self.handler.predict(biImg_list)
