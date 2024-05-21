@@ -1,11 +1,9 @@
 import os
 import sys
 
-sys.path.append(
-    "/mnt/c/Users/wotjr/Documents/Github/optical-music-recognition/ddm-omr/produce_data"
-)
-from xml2annotation import Xml2Annotation
-from score2measure import Score2Measure
+
+from produce_data.xml2annotation import Xml2Annotation
+from produce_data.score2measure import Score2Measure
 from util import Util
 
 

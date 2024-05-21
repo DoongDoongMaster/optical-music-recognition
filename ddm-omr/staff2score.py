@@ -372,24 +372,11 @@ class StaffToScore(object):
         pitch_labels = result_note
         return x_preprocessed_list, pitch_labels
 
-    def predict(self, biImg_list):
-        # 아래 과정을 거친 rgb 이미지 데이터를 여러 개 예측
-        # biImg = Image2Augment.readimg(x_raw_path)
-        # biImg = 255 - biImg
-        # print(">>>>>>>>>>>>>>>>>>>>", biImg_list)
-        x_preprocessed_list = []
-
-        for img in biImg_list:
-            x_preprocessed_list.append(Image2Augment.resizeimg(self.args, img))
-        print("전처리 후 x 개수: ", len(x_preprocessed_list))
-
+    def model_predict(self, x_preprocessed_list):
         # 리스트를 tf.Tensor로 변환
         pitch_dataset = tf.data.Dataset.from_tensor_slices(
             np.array(x_preprocessed_list)
         )
-        # tf.Tensor로부터 Dataset 생성
-        # pitch_dataset = tf.data.Dataset.from_tensor_slices(x_preprocessed_tensor)
-        # print(pitch_dataset)
 
         pitch_dataset = (
             pitch_dataset.map(self.pitch_encode_x, num_parallel_calls=tf.data.AUTOTUNE)
@@ -397,28 +384,41 @@ class StaffToScore(object):
             .prefetch(buffer_size=tf.data.AUTOTUNE)
         )
 
-        for batch in pitch_dataset.take(1):
-            batch_images = batch["image"]
+        all_pred_texts = []
+        all_images = []
 
-            print("-- 예측 --")
+        # 모든 배치에 대해 예측 수행
+        for batch in pitch_dataset:
+            batch_images = batch["image"]
             preds = self.prediction_model(batch_images)
             pred_texts, y_pred = self.pitch_decode_batch_predictions(preds)
 
-            b_l = len(pred_texts)
-            _, ax = plt.subplots(b_l, 1, figsize=(24, 20))
-            # Ensure ax is always iterable
-            if b_l == 1:
-                ax = [ax]
-            for i in range(b_l):
-                img = (batch_images[i, :, :, 0] * 255).numpy().astype(np.uint8)
-                img = img.T
-                title_pred = f"Prediction: {pred_texts[i]}"
-                ax[i].imshow(img, cmap="gray")
-                ax[i].set_title(f"{title_pred}")
-                ax[i].axis("off")
-        os.makedirs(f"predict-result/", exist_ok=True)
-        plt.savefig(f"predict-result/pred.png")
+            all_pred_texts.extend(pred_texts)
+            all_images.extend(batch_images)
+
+        # 예측 결과 시각화 및 저장
+        b_l = len(all_pred_texts)
+        _, ax = plt.subplots(b_l, 1, figsize=(24, 20))
+        # Ensure ax is always iterable
+        if b_l == 1:
+            ax = [ax]
+        for i in range(b_l):
+            img = np.array(all_images[i])  # 이미지 데이터 가져오기
+            img = np.squeeze(img)  # 3차원 배열에서 불필요한 차원 제거
+            img = np.transpose(img, (1, 0))  # 이미지 데이터를 전치하여 가로 세로를 바꿈
+            img = img * 255  # 0-1 범위를 0-255로 변환
+            img = img.astype(np.uint8)  # 이미지 데이터를 uint8 형식으로 변환
+
+            ax[i].imshow(img, cmap="gray")
+            ax[i].set_title(f"Prediction: {all_pred_texts[i]}")
+            ax[i].axis("off")
+
+        os.makedirs("predict-result/", exist_ok=True)
+        datetime = Util.get_datetime()
+        plt.savefig(f"predict-result/pred-{datetime}.png")
         plt.show()
+
+        return all_pred_texts  # 예측 결과 반환
 
     def training(self):
         x, y = self.load_data()
@@ -575,6 +575,7 @@ class StaffToScore(object):
                 .numpy()
                 .decode("utf-8")
                 .replace("[UNK]", "")
+                .rstrip("+")
             )
             output_text.append(res)
         return output_text, y_pred
