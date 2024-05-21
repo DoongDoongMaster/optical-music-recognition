@@ -235,13 +235,14 @@ class Annotation2Xml:
         # Score에 Drum Track 추가
         score.insert(0, drum_track)
 
+        plt.clf()
         score.show()
 
         # 악보 이미지의 배경 색상을 흰색으로 설정
         fig = plt.gcf()
         fig.patch.set_facecolor('white')
         
-        IMAGE_PATH = "../../images"
+        IMAGE_PATH = "../images"
         os.makedirs(IMAGE_PATH, exist_ok=True)  # 이미지 폴더 생성
         date_time = datetime.now().strftime(
             "%Y-%m-%d_%H-%M-%S"
