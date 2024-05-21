@@ -1,7 +1,7 @@
 import os
 import re
 import cv2
-from annotation2xml import Annotation2Xml
+from produce_data.annotation2xml import Annotation2Xml
 from util import Util
 from staff2score import StaffToScore
 from process_data.image2augment import Image2Augment
