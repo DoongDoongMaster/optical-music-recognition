@@ -7,15 +7,15 @@ import sys
 
 sys.path.append("/mnt/c/Users/wotjr/Documents/Github/optical-music-recognition/ddm-omr")
 from staff2score import StaffToScore
+from sheet2score import SheetToScore
 
 cofigpath = f"workspace/config.yaml"
 
 args = getconfig(cofigpath)
 # DataProcessing.process_all_score2measure(args)
-staff2score = StaffToScore(args)
-
-staff2score.training()
-staff2score.test()
+# staff2score = StaffToScore(args)
+# staff2score.training()
+# staff2score.test()
 
 # x_raw_path = [
 #     f"../data/test/Rock-ver_measure_02_2024-05-19_05-31-40.png",
@@ -29,3 +29,6 @@ staff2score.test()
 #     biImg_list.append(biImg)
 
 # staff2score.predict(biImg_list)
+
+sheet2stave = SheetToScore(args)
+sheet2stave.sheet2stave()

@@ -192,7 +192,6 @@ char_to_int_mapping = [
     "rest_whole.",  # 22
 ]
 
-
 # 문자를 숫자로 변환
 char_to_num = layers.StringLookup(vocabulary=list(char_to_int_mapping), mask_token=None)
 
