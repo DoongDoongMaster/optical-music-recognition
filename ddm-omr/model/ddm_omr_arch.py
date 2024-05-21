@@ -47,6 +47,7 @@ char_to_int_mapping = [
     "note-D4_16th.",
     "note-D4_whole",
     "note-D4_whole.",
+    "note-D4_32nd",
     # 2
     "note-E4_eighth",
     "note-E4_eighth.",
@@ -58,6 +59,7 @@ char_to_int_mapping = [
     "note-E4_16th.",
     "note-E4_whole",
     "note-E4_whole.",
+    "note-E4_32nd",
     # 3
     "note-F4_eighth",
     "note-F4_eighth.",
@@ -69,6 +71,7 @@ char_to_int_mapping = [
     "note-F4_16th.",
     "note-F4_whole",
     "note-F4_whole.",
+    "note-F4_32nd",
     # 4
     "note-G4_eighth",
     "note-G4_eighth.",
@@ -80,6 +83,7 @@ char_to_int_mapping = [
     "note-G4_16th.",
     "note-G4_whole",
     "note-G4_whole.",
+    "note-G4_32nd",
     # 5
     "note-A4_eighth",
     "note-A4_eighth.",
@@ -91,6 +95,7 @@ char_to_int_mapping = [
     "note-A4_16th.",
     "note-A4_whole",
     "note-A4_whole.",
+    "note-A4_32nd",
     # 6
     "note-B4_eighth",
     "note-B4_eighth.",
@@ -102,6 +107,7 @@ char_to_int_mapping = [
     "note-B4_16th.",
     "note-B4_whole",
     "note-B4_whole.",
+    "note-B4_32nd",
     # 7
     "note-C5_eighth",
     "note-C5_eighth.",
@@ -113,6 +119,7 @@ char_to_int_mapping = [
     "note-C5_16th.",
     "note-C5_whole",
     "note-C5_whole.",
+    "note-C5_32nd",
     # 8
     "note-D5_eighth",
     "note-D5_eighth.",
@@ -124,6 +131,7 @@ char_to_int_mapping = [
     "note-D5_16th.",
     "note-D5_whole",
     "note-D5_whole.",
+    "note-D5_32nd",
     # 9
     "note-E5_eighth",
     "note-E5_eighth.",
@@ -135,6 +143,7 @@ char_to_int_mapping = [
     "note-E5_16th.",
     "note-E5_whole",
     "note-E5_whole.",
+    "note-E5_32nd",
     # 10
     "note-F5_eighth",
     "note-F5_eighth.",
@@ -146,6 +155,7 @@ char_to_int_mapping = [
     "note-F5_16th.",
     "note-F5_whole",
     "note-F5_whole.",
+    "note-F5_32nd",
     # 11
     "note-G5_eighth",
     "note-G5_eighth.",
@@ -157,6 +167,7 @@ char_to_int_mapping = [
     "note-G5_16th.",
     "note-G5_whole",
     "note-G5_whole.",
+    "note-G5_32nd",
     # 12
     "note-A5_eighth",
     "note-A5_eighth.",
@@ -168,6 +179,7 @@ char_to_int_mapping = [
     "note-A5_16th.",
     "note-A5_whole",
     "note-A5_whole.",
+    "note-A5_32nd",
     # 13
     "note-B5_eighth",
     "note-B5_eighth.",
@@ -179,6 +191,7 @@ char_to_int_mapping = [
     "note-B5_16th.",
     "note-B5_whole",
     "note-B5_whole.",
+    "note-B5_32nd",
     #
     "rest_eighth",  # 13
     "rest_eighth.",  # 14
@@ -190,6 +203,7 @@ char_to_int_mapping = [
     "rest_16th.",  # 20
     "rest_whole",  # 21
     "rest_whole.",  # 22
+    "rest_32nd",  # 23
 ]
 
 # 문자를 숫자로 변환
@@ -225,9 +239,7 @@ class DDMOMR:
     def build_model(self):
         # Inputs 정의
         input_img = layers.Input(
-            shape=(self.args.max_width, self.args.max_height, 1),
-            name="image",
-            dtype="float32",
+            shape=(self.args.max_width, self.args.max_height, 1), name="image", dtype="float32"
         )
         labels = layers.Input(name="label", shape=(None,), dtype="float32")
 
@@ -262,18 +274,12 @@ class DDMOMR:
         x = layers.Dropout(0.2)(x)
 
         # RNNs
-        x = layers.Bidirectional(layers.LSTM(128, return_sequences=True, dropout=0.25))(
-            x
-        )
-        x = layers.Bidirectional(layers.LSTM(64, return_sequences=True, dropout=0.25))(
-            x
-        )
+        x = layers.Bidirectional(layers.LSTM(128, return_sequences=True, dropout=0.25))(x)
+        x = layers.Bidirectional(layers.LSTM(64, return_sequences=True, dropout=0.25))(x)
 
         # Output layer
         x = layers.Dense(
-            len(char_to_num.get_vocabulary()) + 1,
-            activation="softmax",
-            name="dense2",
+            len(char_to_num.get_vocabulary()) + 1, activation="softmax", name="dense2"
         )(x)
 
         # 위에서 지정한 CTCLayer 클래스를 이용해서 ctc loss를 계산
@@ -281,7 +287,7 @@ class DDMOMR:
 
         # 모델 정의
         model = keras.models.Model(
-            inputs=[input_img, labels], outputs=output, name="omr_model_v1"
+            inputs=[input_img, labels], outputs=output, name="ocr_model_v1"
         )
         # Optimizer
         opt = keras.optimizers.Adam()
