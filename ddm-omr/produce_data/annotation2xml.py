@@ -1,6 +1,9 @@
-from music21 import stream, instrument, clef, meter, note, percussion
-
+import os
+import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
+
+from datetime import datetime
+from music21 import stream, instrument, clef, meter, note, percussion
 from music21.musicxml import m21ToXml
 
 
@@ -233,6 +236,17 @@ class Annotation2Xml:
         score.insert(0, drum_track)
 
         score.show()
+
+        # 악보 이미지의 배경 색상을 흰색으로 설정
+        fig = plt.gcf()
+        fig.patch.set_facecolor('white')
+        
+        IMAGE_PATH = "../../images"
+        os.makedirs(IMAGE_PATH, exist_ok=True)  # 이미지 폴더 생성
+        date_time = datetime.now().strftime(
+            "%Y-%m-%d_%H-%M-%S"
+        )  # 현재 날짜와 시간 가져오기
+        plt.savefig(f"{IMAGE_PATH}/output-{date_time}.png")
 
         xml_tree = Annotation2Xml.m21_score_to_xml_tree(score)
 
