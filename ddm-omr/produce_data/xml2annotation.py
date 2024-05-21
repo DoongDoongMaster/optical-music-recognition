@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 
+
 class Xml2Annotation:
     # 각 measure에 대한 처리 함수
     @staticmethod
@@ -80,9 +81,11 @@ class Xml2Annotation:
             ):
                 measure_tmp = "clef-percussion+"
 
-            measure_tmp += Xml2Annotation.process_measure(measure, division) + "barline+"
+            measure_tmp += (
+                Xml2Annotation.process_measure(measure, division) + "barline+"
+            )
             annotation_list.append(measure_tmp[:-1])
-            measure_tmp=""
+            measure_tmp = ""
         return annotation_list
 
     @staticmethod
