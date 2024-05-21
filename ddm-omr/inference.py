@@ -7,6 +7,7 @@ import sys
 
 sys.path.append("/mnt/c/Users/wotjr/Documents/Github/optical-music-recognition/ddm-omr")
 from staff2score import StaffToScore
+from sheet2score import SheetToScore
 
 cofigpath = f"workspace/config.yaml"
 
@@ -29,3 +30,6 @@ staff2score.test()
 #     biImg_list.append(biImg)
 
 # staff2score.predict(biImg_list)
+
+sheet2stave = SheetToScore(args)
+sheet2stave.sheet2stave()

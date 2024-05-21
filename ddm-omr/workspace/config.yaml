@@ -2,7 +2,9 @@
 #****************datasets args********************
 #*************************************************
 filepaths:
-  checkpoints: workspace/checkpoints
+  model_path:
+    base: workspace/models
+    model: workspace/models/omr
   feature_path:
     base: ../data/processed-feature
     seq: ../data/processed-feature/sequence-annotation
