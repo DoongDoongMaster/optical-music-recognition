@@ -11,6 +11,7 @@ ddm-omr/zeropadding-output
 ddm-omr/augment-output
 ddm-omr/dataset-output
 ddm-omr/predict-result
+ddm-omr/test-result
 
 # result-xml file
 /result-xml/
