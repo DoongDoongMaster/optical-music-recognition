@@ -22,37 +22,49 @@ class Image2Augment:
     @staticmethod
     def readimg(img):
         """
+        배경이 흰색이든 투명이든 처리하여 Binary 이미지를 생성
         rgb img -> binary img
         input : rgb image
         return : binary image
         """
-        # Read the image with unchanged flag to handle alpha channel if present
+        # 1. 이미지를 원래의 채널 수와 비트 깊이 그대로 읽음
         img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
-
         if img is None:
             raise RuntimeError("Image not found or unable to load.")
 
+        # Image has an alpha channel (RGBA)
         if img.shape[-1] == 4:
-            # Image has an alpha channel (RGBA)
+            # 2. RGB와 알파 채널을 분리
+            bgr = img[:, :, :3]
             alpha_channel = img[:, :, 3]
-            # Invert alpha channel to create mask
-            img = 255 - alpha_channel
-            # Convert single channel mask to 3-channel grayscale
-            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+            # 3. RGB 채널이 모두 255인 픽셀(흰색 배경)을 감지하여 해당 알파 채널 값을 0으로 설정
+            white_background = np.all(bgr == [255, 255, 255], axis=-1)
+            alpha_channel[white_background] = 0
+
+            # 4. 알파 채널을 반전하여 마스크를 생성하고, 이를 그레이스케일 이미지로 사용
+            mask = 255 - alpha_channel
+            gray = mask
+        # Image is RGB
         elif img.shape[-1] == 3:
-            # Image is RGB
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            # 2. 이미지를 그레이스케일로 변환
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         else:
             raise RuntimeError("Unsupported image type!")
 
-        # Convert to grayscale if not already (RGB case)
-        if len(img.shape) == 3:
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        else:
-            gray = img
-
-        # Apply binary inverse thresholding
+        # cv2.threshold 함수를 사용하여 이진화를 수행
         _, biImg = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
+
+        # os.makedirs(f"../data/processed-feature/stave/Rock-ver", exist_ok=True)
+        # for idx, stave in enumerate([biImg]):
+        #     date_time = Util.get_datetime()
+        #     cv2.imwrite(
+        #         f"../data/processed-feature/stave/Rock-ver/Rock-ver-stave_{idx}_{date_time}.png",
+        #         stave,
+        #     )
+        #     print(idx, "--shape: ", stave.shape)
+
+        # return 배경이 검정색인 Binary Image
         return biImg
 
     @staticmethod

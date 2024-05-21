@@ -93,6 +93,7 @@ class Score2Measure:
 
     @staticmethod
     def draw_measure_on_score(args, title, score_path, measure_stats_list):
+        print(measure_stats_list)
         """
         OSMD로 추출한 cursor 위치값을 score에 그려보기
         """
