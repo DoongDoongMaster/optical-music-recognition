@@ -35,30 +35,30 @@ char_to_int_mapping = [
     "clef-percussion",  # 2
     "timeSignature-4/4",  # 3
     # 1
-    "note-D4_eighth",
-    "note-D4_eighth.",
-    "note-D4_half",
-    "note-D4_half.",
-    "note-D4_quarter",
-    "note-D4_quarter.",
-    "note-D4_16th",
-    "note-D4_16th.",
-    "note-D4_whole",
-    "note-D4_whole.",
-    "note-D4_32nd",
-    # 2
-    "note-E4_eighth",
-    "note-E4_eighth.",
-    "note-E4_half",
-    "note-E4_half.",
-    "note-E4_quarter",
-    "note-E4_quarter.",
-    "note-E4_16th",
-    "note-E4_16th.",
-    "note-E4_whole",
-    "note-E4_whole.",
-    "note-E4_32nd",
-    # 3
+    # "note-D4_eighth",
+    # "note-D4_eighth.",
+    # "note-D4_half",
+    # "note-D4_half.",
+    # "note-D4_quarter",
+    # "note-D4_quarter.",
+    # "note-D4_16th",
+    # "note-D4_16th.",
+    # "note-D4_whole",
+    # "note-D4_whole.",
+    # "note-D4_32nd",
+    # # 2
+    # "note-E4_eighth",
+    # "note-E4_eighth.",
+    # "note-E4_half",
+    # "note-E4_half.",
+    # "note-E4_quarter",
+    # "note-E4_quarter.",
+    # "note-E4_16th",
+    # "note-E4_16th.",
+    # "note-E4_whole",
+    # "note-E4_whole.",
+    # "note-E4_32nd",
+    # 3 ------------------ kick
     "note-F4_eighth",
     "note-F4_eighth.",
     "note-F4_half",
@@ -70,43 +70,43 @@ char_to_int_mapping = [
     "note-F4_whole",
     "note-F4_whole.",
     "note-F4_32nd",
-    # 4
-    "note-G4_eighth",
-    "note-G4_eighth.",
-    "note-G4_half",
-    "note-G4_half.",
-    "note-G4_quarter",
-    "note-G4_quarter.",
-    "note-G4_16th",
-    "note-G4_16th.",
-    "note-G4_whole",
-    "note-G4_whole.",
-    "note-G4_32nd",
-    # 5
-    "note-A4_eighth",
-    "note-A4_eighth.",
-    "note-A4_half",
-    "note-A4_half.",
-    "note-A4_quarter",
-    "note-A4_quarter.",
-    "note-A4_16th",
-    "note-A4_16th.",
-    "note-A4_whole",
-    "note-A4_whole.",
-    "note-A4_32nd",
-    # 6
-    "note-B4_eighth",
-    "note-B4_eighth.",
-    "note-B4_half",
-    "note-B4_half.",
-    "note-B4_quarter",
-    "note-B4_quarter.",
-    "note-B4_16th",
-    "note-B4_16th.",
-    "note-B4_whole",
-    "note-B4_whole.",
-    "note-B4_32nd",
-    # 7
+    # # 4
+    # "note-G4_eighth",
+    # "note-G4_eighth.",
+    # "note-G4_half",
+    # "note-G4_half.",
+    # "note-G4_quarter",
+    # "note-G4_quarter.",
+    # "note-G4_16th",
+    # "note-G4_16th.",
+    # "note-G4_whole",
+    # "note-G4_whole.",
+    # "note-G4_32nd",
+    # # 5
+    # "note-A4_eighth",
+    # "note-A4_eighth.",
+    # "note-A4_half",
+    # "note-A4_half.",
+    # "note-A4_quarter",
+    # "note-A4_quarter.",
+    # "note-A4_16th",
+    # "note-A4_16th.",
+    # "note-A4_whole",
+    # "note-A4_whole.",
+    # "note-A4_32nd",
+    # # 6
+    # "note-B4_eighth",
+    # "note-B4_eighth.",
+    # "note-B4_half",
+    # "note-B4_half.",
+    # "note-B4_quarter",
+    # "note-B4_quarter.",
+    # "note-B4_16th",
+    # "note-B4_16th.",
+    # "note-B4_whole",
+    # "note-B4_whole.",
+    # "note-B4_32nd",
+    # 7 ------------------ snare
     "note-C5_eighth",
     "note-C5_eighth.",
     "note-C5_half",
@@ -118,43 +118,43 @@ char_to_int_mapping = [
     "note-C5_whole",
     "note-C5_whole.",
     "note-C5_32nd",
-    # 8
-    "note-D5_eighth",
-    "note-D5_eighth.",
-    "note-D5_half",
-    "note-D5_half.",
-    "note-D5_quarter",
-    "note-D5_quarter.",
-    "note-D5_16th",
-    "note-D5_16th.",
-    "note-D5_whole",
-    "note-D5_whole.",
-    "note-D5_32nd",
-    # 9
-    "note-E5_eighth",
-    "note-E5_eighth.",
-    "note-E5_half",
-    "note-E5_half.",
-    "note-E5_quarter",
-    "note-E5_quarter.",
-    "note-E5_16th",
-    "note-E5_16th.",
-    "note-E5_whole",
-    "note-E5_whole.",
-    "note-E5_32nd",
-    # 10
-    "note-F5_eighth",
-    "note-F5_eighth.",
-    "note-F5_half",
-    "note-F5_half.",
-    "note-F5_quarter",
-    "note-F5_quarter.",
-    "note-F5_16th",
-    "note-F5_16th.",
-    "note-F5_whole",
-    "note-F5_whole.",
-    "note-F5_32nd",
-    # 11
+    # # 8
+    # "note-D5_eighth",
+    # "note-D5_eighth.",
+    # "note-D5_half",
+    # "note-D5_half.",
+    # "note-D5_quarter",
+    # "note-D5_quarter.",
+    # "note-D5_16th",
+    # "note-D5_16th.",
+    # "note-D5_whole",
+    # "note-D5_whole.",
+    # "note-D5_32nd",
+    # # 9
+    # "note-E5_eighth",
+    # "note-E5_eighth.",
+    # "note-E5_half",
+    # "note-E5_half.",
+    # "note-E5_quarter",
+    # "note-E5_quarter.",
+    # "note-E5_16th",
+    # "note-E5_16th.",
+    # "note-E5_whole",
+    # "note-E5_whole.",
+    # "note-E5_32nd",
+    # # 10
+    # "note-F5_eighth",
+    # "note-F5_eighth.",
+    # "note-F5_half",
+    # "note-F5_half.",
+    # "note-F5_quarter",
+    # "note-F5_quarter.",
+    # "note-F5_16th",
+    # "note-F5_16th.",
+    # "note-F5_whole",
+    # "note-F5_whole.",
+    # "note-F5_32nd",
+    # 11 ------------------ hihat
     "note-G5_eighth",
     "note-G5_eighth.",
     "note-G5_half",
@@ -166,42 +166,42 @@ char_to_int_mapping = [
     "note-G5_whole",
     "note-G5_whole.",
     "note-G5_32nd",
-    # 12
-    "note-A5_eighth",
-    "note-A5_eighth.",
-    "note-A5_half",
-    "note-A5_half.",
-    "note-A5_quarter",
-    "note-A5_quarter.",
-    "note-A5_16th",
-    "note-A5_16th.",
-    "note-A5_whole",
-    "note-A5_whole.",
-    "note-A5_32nd",
-    # 13
-    "note-B5_eighth",
-    "note-B5_eighth.",
-    "note-B5_half",
-    "note-B5_half.",
-    "note-B5_quarter",
-    "note-B5_quarter.",
-    "note-B5_16th",
-    "note-B5_16th.",
-    "note-B5_whole",
-    "note-B5_whole.",
-    "note-B5_32nd",
-    #
-    "rest_eighth",  # 13
-    "rest_eighth.",  # 14
-    "rest_half",  # 15
-    "rest_half.",  # 16
-    "rest_quarter",  # 17
-    "rest_quarter.",  # 18
-    "rest_16th",  # 19
-    "rest_16th.",  # 20
-    "rest_whole",  # 21
-    "rest_whole.",  # 22
-    "rest_32nd",  # 23
+    # # 12
+    # "note-A5_eighth",
+    # "note-A5_eighth.",
+    # "note-A5_half",
+    # "note-A5_half.",
+    # "note-A5_quarter",
+    # "note-A5_quarter.",
+    # "note-A5_16th",
+    # "note-A5_16th.",
+    # "note-A5_whole",
+    # "note-A5_whole.",
+    # "note-A5_32nd",
+    # # 13
+    # "note-B5_eighth",
+    # "note-B5_eighth.",
+    # "note-B5_half",
+    # "note-B5_half.",
+    # "note-B5_quarter",
+    # "note-B5_quarter.",
+    # "note-B5_16th",
+    # "note-B5_16th.",
+    # "note-B5_whole",
+    # "note-B5_whole.",
+    # "note-B5_32nd",
+    # #
+    # "rest_eighth",  # 13
+    # "rest_eighth.",  # 14
+    # "rest_half",  # 15
+    # "rest_half.",  # 16
+    # "rest_quarter",  # 17
+    # "rest_quarter.",  # 18
+    # "rest_16th",  # 19
+    # "rest_16th.",  # 20
+    # "rest_whole",  # 21
+    # "rest_whole.",  # 22
+    # "rest_32nd",  # 23
 ]
 
 # 문자를 숫자로 변환
@@ -218,7 +218,7 @@ class StaffToScore(object):
         self.args = args
         self.model = DDMOMR(args)
         self.ctc = CTCLayer()
-        self.prediction_model = self.load_model()
+        self.prediction_model = self.load_predict_model()
 
     def save(self, model):
         """
@@ -230,7 +230,7 @@ class StaffToScore(object):
         model.save(model_path, save_format="tf")
         print("--! save model: ", model_path)
 
-    def load_model(self, model_file=None):
+    def load_predict_model(self, model_file=None):
         """
         -- method_type과 feature type에 맞는 가장 최근 모델 불러오기
         """
@@ -260,6 +260,34 @@ class StaffToScore(object):
         )
 
         return prediction_model
+    
+    def load_model(self, model_file=None):
+        """
+        -- method_type과 feature type에 맞는 가장 최근 모델 불러오기
+        """
+        model_files = glob.glob(f"{self.args.filepaths.model_path.model}_*.h5")
+        if model_files is None or len(model_files) == 0:
+            print("-- ! No pre-trained model ! --")
+            return
+
+        model_files.sort(reverse=True)  # 최신 순으로 정렬
+        load_model_file = model_files[0]  # 가장 최근 모델
+
+        if model_file is not None:
+            load_model_file = model_file
+        print("-- ! load model: ", load_model_file)
+
+        # 사용자 정의 레이어를 포함하는 딕셔너리를 만듭니다
+        # custom_object_scope를 사용하여 모델을 로드합니다
+        custom_objects = {"CTCLayer": self.ctc}
+        with custom_object_scope(custom_objects):
+            model = tf.keras.models.load_model(
+                load_model_file, custom_objects=custom_objects
+            )
+
+
+        return model
+
 
     def load_x_y(self, title_path):
         """ """
@@ -451,9 +479,10 @@ class StaffToScore(object):
 
     def training(self):
         x, y = self.load_data()
+        
 
         pitch_x_train, pitch_x_valid, pitch_y_train, pitch_y_valid = train_test_split(
-            np.array(x), np.array(y), test_size=0.1, random_state=42
+            np.array(x), np.array(y), test_size=0.1, random_state=40
         )
 
         pitch_train_dataset = tf.data.Dataset.from_tensor_slices(
@@ -498,15 +527,22 @@ class StaffToScore(object):
                 ax[i].set_title(label)
                 ax[i].axis("off")
         os.makedirs(f"dataset-output/", exist_ok=True)
-        plt.savefig(f"dataset-output/dataset-1.png")
+        datetime=Util.get_datetime()
+        plt.savefig(f"dataset-output/dataset-{datetime}.png")
         plt.show()
 
+        return
+
         # Get the model
+        # ----------------- 이어서 학습시키고 싶으면-------------
+        # model = self.load_model()
+        # ----------------- 새롭게 학습시키고 싶으면-------------
         model = self.model.build_model()
+
         model.summary()
 
         epochs = self.args.epoch
-        early_stopping_patience = 30
+        early_stopping_patience = 10
         # early stopping 지정
         early_stopping = keras.callbacks.EarlyStopping(
             monitor="val_loss",

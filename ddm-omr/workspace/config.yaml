@@ -11,6 +11,7 @@ filepaths:
   raw_path:
     osmd: ../data/raw/osmd-dataset-v1.0.0
   test_path: ../data/test/test_omr
+  test_demo: ../data/test
 
 jsonkeys:
   measure_list: measureList
@@ -21,9 +22,9 @@ measure_height: 120
 score_width: 1024
 
 channels: 1
-max_height: 384
-max_width: 768
-max_seq_len: 64
+max_height: 128
+max_width: 256
+max_seq_len: 24
 
 batch_size: 16
 epoch: 200
