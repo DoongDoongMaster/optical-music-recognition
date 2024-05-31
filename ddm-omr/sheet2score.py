@@ -1,13 +1,10 @@
 import os
 import re
 import cv2
+from produce_data.annotation2xml import Annotation2Xml
 from util import Util
-
-from process_data.image2augment import Image2Augment
-import sys
-
-# sys.path.append("~/srv/projects/optical-music-recognition/ddm-omr")
 from staff2score import StaffToScore
+from process_data.image2augment import Image2Augment
 
 
 class SheetToScore(object):
@@ -172,6 +169,7 @@ class SheetToScore(object):
             result_list.append(process_string(res))
         result = "+".join(result_list)
         print(">>>>", result)
+        return result
 
 
     def predict(self, score_path):
@@ -201,5 +199,6 @@ if __name__ == "__main__":
 
     handler = SheetToScore(args)
     predict_result = handler.predict(score_path)
+    xml_tree = Annotation2Xml.annotation_to_musicxml(predict_result)
 
     # self.handler.predict(biImg_list)
