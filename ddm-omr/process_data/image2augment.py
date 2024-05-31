@@ -49,6 +49,11 @@ class Image2Augment:
         elif img.shape[-1] == 3:
             # 2. 이미지를 그레이스케일로 변환
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        elif img.ndim == 2:
+            # 3. 이미 그레이스케일
+            gray = img
+        
         else:
             raise RuntimeError("Unsupported image type!")
 

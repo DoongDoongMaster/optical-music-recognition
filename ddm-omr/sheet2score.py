@@ -87,6 +87,18 @@ class SheetToScore(object):
 
         biImg = Image2Augment.readimg(score_path)
 
+        (h, w) = biImg.shape[:2]
+        target_width = self.args.score_width
+
+        # 비율 계산
+        ratio = target_width / float(w)
+        target_height = int(h * ratio)
+
+        # 이미지 리사이즈
+        biImg = cv2.resize(
+            biImg, (target_width, target_height), interpolation=cv2.INTER_AREA
+        )
+
         # 배경이 검정색인 binary image일 때 잘 추출하더라
         cnt, _, stats, _ = self.extract_segment_from_score(biImg)
         stave_list = self.extract_stave_from_score(biImg, cnt, stats)
@@ -130,19 +142,21 @@ class SheetToScore(object):
             start_x += max_w
 
         return result
-
-    def predict(self, score_path):
+    
+    def preprocessing(self, score_path):
+        # ------------ 전처리 ------------------
         stave_list = self.transform_score2stave(score_path)  # stave 추출
         measure_list = []
         for idx, stave in enumerate(stave_list):
             measures = self.stave2measure(stave)  # measure 추출
             measure_list += measures
-
-        # ------------ 전처리 ------------------
         x_preprocessed_list = []
         for biImg in measure_list:
             x_preprocessed_list.append(Image2Augment.resizeimg(self.args, biImg))
 
+        return x_preprocessed_list
+    
+    def postprocessing(self, predict_result):
         # 함수 정의
         def process_string(s):
             # 먼저, | 문자 사이의 공백을 제거
@@ -153,13 +167,28 @@ class SheetToScore(object):
                 s = s[:-1]
             return s
 
-        result = self.staff2score.model_predict(x_preprocessed_list)
         result_list = []
-        for res in result:
+        for res in predict_result:
             result_list.append(process_string(res))
         result = "+".join(result_list)
         print(">>>>", result)
 
+
+    def predict(self, score_path):
+        x_preprocessed_list=self.preprocessing(score_path)
+
+
+        # print(x_preprocessed_list)
+        # self.save_stave("demo-test", x_preprocessed_list)
+
+
+
+        result = self.staff2score.model_predict(x_preprocessed_list)
+        postresult =self.postprocessing(result)
+        print(postresult)
+        return postresult
+
+    
 
 if __name__ == "__main__":
     from configs import getconfig
@@ -168,7 +197,7 @@ if __name__ == "__main__":
     args = getconfig(cofigpath)
 
     # 1. 예측할 악보
-    score_path = f"{args.filepaths.raw_path.osmd}/Rock-ver/Rock-ver.png"
+    score_path = f"{args.filepaths.test_demo}/demo.png"
 
     handler = SheetToScore(args)
     predict_result = handler.predict(score_path)

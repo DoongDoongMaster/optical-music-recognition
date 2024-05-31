@@ -12,11 +12,11 @@ from sheet2score import SheetToScore
 cofigpath = f"workspace/config.yaml"
 
 args = getconfig(cofigpath)
-# DataProcessing.process_all_score2measure(args)
+# DataProcessing.process_all_score2measure(args, True)
 
 staff2score = StaffToScore(args)
-# staff2score.training()
-staff2score.test()
+staff2score.training()
+# staff2score.test()
 
 # x_raw_path_list = [
 #     f"../data/test/Rock-ver_measure_02_2024-05-19_05-31-40.png",

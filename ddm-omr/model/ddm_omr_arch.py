@@ -2,65 +2,36 @@ from tensorflow.keras import layers
 from tensorflow import keras
 import tensorflow as tf
 
-# from model import TrOMR
-# char_to_int_mapping = [
-#     "|",  # 0
-#     "barline",  # 1
-#     "clef-percussion",  # 2
-#     "note-eighth",  # 3
-#     "note-eighth.",  # 4
-#     "note-half",  # 5
-#     "note-half.",  # 6
-#     "note-quarter",  # 7
-#     "note-quarter.",  # 8
-#     "note-16th",  # 9
-#     "note-16th.",  # 10
-#     "note-whole",  # 11
-#     "note-whole.",  # 12
-#     "rest_eighth",  # 13
-#     "rest_eighth.",  # 14
-#     "rest_half",  # 15
-#     "rest_half.",  # 16
-#     "rest_quarter",  # 17
-#     "rest_quarter.",  # 18
-#     "rest_16th",  # 19
-#     "rest_16th.",  # 20
-#     "rest_whole",  # 21
-#     "rest_whole.",  # 22
-#     "timeSignature-4/4",  # 23
-# ]
-
-
 char_to_int_mapping = [
     "|",  # 0
     "barline",  # 1
     "clef-percussion",  # 2
     "timeSignature-4/4",  # 3
     # 1
-    "note-D4_eighth",
-    "note-D4_eighth.",
-    "note-D4_half",
-    "note-D4_half.",
-    "note-D4_quarter",
-    "note-D4_quarter.",
-    "note-D4_16th",
-    "note-D4_16th.",
-    "note-D4_whole",
-    "note-D4_whole.",
-    "note-D4_32nd",
-    # 2
-    "note-E4_eighth",
-    "note-E4_eighth.",
-    "note-E4_half",
-    "note-E4_half.",
-    "note-E4_quarter",
-    "note-E4_quarter.",
-    "note-E4_16th",
-    "note-E4_16th.",
-    "note-E4_whole",
-    "note-E4_whole.",
-    "note-E4_32nd",
-    # 3
+    # "note-D4_eighth",
+    # "note-D4_eighth.",
+    # "note-D4_half",
+    # "note-D4_half.",
+    # "note-D4_quarter",
+    # "note-D4_quarter.",
+    # "note-D4_16th",
+    # "note-D4_16th.",
+    # "note-D4_whole",
+    # "note-D4_whole.",
+    # "note-D4_32nd",
+    # # 2
+    # "note-E4_eighth",
+    # "note-E4_eighth.",
+    # "note-E4_half",
+    # "note-E4_half.",
+    # "note-E4_quarter",
+    # "note-E4_quarter.",
+    # "note-E4_16th",
+    # "note-E4_16th.",
+    # "note-E4_whole",
+    # "note-E4_whole.",
+    # "note-E4_32nd",
+    # 3 ------------------ kick
     "note-F4_eighth",
     "note-F4_eighth.",
     "note-F4_half",
@@ -72,43 +43,43 @@ char_to_int_mapping = [
     "note-F4_whole",
     "note-F4_whole.",
     "note-F4_32nd",
-    # 4
-    "note-G4_eighth",
-    "note-G4_eighth.",
-    "note-G4_half",
-    "note-G4_half.",
-    "note-G4_quarter",
-    "note-G4_quarter.",
-    "note-G4_16th",
-    "note-G4_16th.",
-    "note-G4_whole",
-    "note-G4_whole.",
-    "note-G4_32nd",
-    # 5
-    "note-A4_eighth",
-    "note-A4_eighth.",
-    "note-A4_half",
-    "note-A4_half.",
-    "note-A4_quarter",
-    "note-A4_quarter.",
-    "note-A4_16th",
-    "note-A4_16th.",
-    "note-A4_whole",
-    "note-A4_whole.",
-    "note-A4_32nd",
-    # 6
-    "note-B4_eighth",
-    "note-B4_eighth.",
-    "note-B4_half",
-    "note-B4_half.",
-    "note-B4_quarter",
-    "note-B4_quarter.",
-    "note-B4_16th",
-    "note-B4_16th.",
-    "note-B4_whole",
-    "note-B4_whole.",
-    "note-B4_32nd",
-    # 7
+    # # 4
+    # "note-G4_eighth",
+    # "note-G4_eighth.",
+    # "note-G4_half",
+    # "note-G4_half.",
+    # "note-G4_quarter",
+    # "note-G4_quarter.",
+    # "note-G4_16th",
+    # "note-G4_16th.",
+    # "note-G4_whole",
+    # "note-G4_whole.",
+    # "note-G4_32nd",
+    # # 5
+    # "note-A4_eighth",
+    # "note-A4_eighth.",
+    # "note-A4_half",
+    # "note-A4_half.",
+    # "note-A4_quarter",
+    # "note-A4_quarter.",
+    # "note-A4_16th",
+    # "note-A4_16th.",
+    # "note-A4_whole",
+    # "note-A4_whole.",
+    # "note-A4_32nd",
+    # # 6
+    # "note-B4_eighth",
+    # "note-B4_eighth.",
+    # "note-B4_half",
+    # "note-B4_half.",
+    # "note-B4_quarter",
+    # "note-B4_quarter.",
+    # "note-B4_16th",
+    # "note-B4_16th.",
+    # "note-B4_whole",
+    # "note-B4_whole.",
+    # "note-B4_32nd",
+    # 7 ------------------ snare
     "note-C5_eighth",
     "note-C5_eighth.",
     "note-C5_half",
@@ -120,43 +91,43 @@ char_to_int_mapping = [
     "note-C5_whole",
     "note-C5_whole.",
     "note-C5_32nd",
-    # 8
-    "note-D5_eighth",
-    "note-D5_eighth.",
-    "note-D5_half",
-    "note-D5_half.",
-    "note-D5_quarter",
-    "note-D5_quarter.",
-    "note-D5_16th",
-    "note-D5_16th.",
-    "note-D5_whole",
-    "note-D5_whole.",
-    "note-D5_32nd",
-    # 9
-    "note-E5_eighth",
-    "note-E5_eighth.",
-    "note-E5_half",
-    "note-E5_half.",
-    "note-E5_quarter",
-    "note-E5_quarter.",
-    "note-E5_16th",
-    "note-E5_16th.",
-    "note-E5_whole",
-    "note-E5_whole.",
-    "note-E5_32nd",
-    # 10
-    "note-F5_eighth",
-    "note-F5_eighth.",
-    "note-F5_half",
-    "note-F5_half.",
-    "note-F5_quarter",
-    "note-F5_quarter.",
-    "note-F5_16th",
-    "note-F5_16th.",
-    "note-F5_whole",
-    "note-F5_whole.",
-    "note-F5_32nd",
-    # 11
+    # # 8
+    # "note-D5_eighth",
+    # "note-D5_eighth.",
+    # "note-D5_half",
+    # "note-D5_half.",
+    # "note-D5_quarter",
+    # "note-D5_quarter.",
+    # "note-D5_16th",
+    # "note-D5_16th.",
+    # "note-D5_whole",
+    # "note-D5_whole.",
+    # "note-D5_32nd",
+    # # 9
+    # "note-E5_eighth",
+    # "note-E5_eighth.",
+    # "note-E5_half",
+    # "note-E5_half.",
+    # "note-E5_quarter",
+    # "note-E5_quarter.",
+    # "note-E5_16th",
+    # "note-E5_16th.",
+    # "note-E5_whole",
+    # "note-E5_whole.",
+    # "note-E5_32nd",
+    # # 10
+    # "note-F5_eighth",
+    # "note-F5_eighth.",
+    # "note-F5_half",
+    # "note-F5_half.",
+    # "note-F5_quarter",
+    # "note-F5_quarter.",
+    # "note-F5_16th",
+    # "note-F5_16th.",
+    # "note-F5_whole",
+    # "note-F5_whole.",
+    # "note-F5_32nd",
+    # 11 ------------------ hihat
     "note-G5_eighth",
     "note-G5_eighth.",
     "note-G5_half",
@@ -168,44 +139,43 @@ char_to_int_mapping = [
     "note-G5_whole",
     "note-G5_whole.",
     "note-G5_32nd",
-    # 12
-    "note-A5_eighth",
-    "note-A5_eighth.",
-    "note-A5_half",
-    "note-A5_half.",
-    "note-A5_quarter",
-    "note-A5_quarter.",
-    "note-A5_16th",
-    "note-A5_16th.",
-    "note-A5_whole",
-    "note-A5_whole.",
-    "note-A5_32nd",
-    # 13
-    "note-B5_eighth",
-    "note-B5_eighth.",
-    "note-B5_half",
-    "note-B5_half.",
-    "note-B5_quarter",
-    "note-B5_quarter.",
-    "note-B5_16th",
-    "note-B5_16th.",
-    "note-B5_whole",
-    "note-B5_whole.",
-    "note-B5_32nd",
-    #
-    "rest_eighth",  # 13
-    "rest_eighth.",  # 14
-    "rest_half",  # 15
-    "rest_half.",  # 16
-    "rest_quarter",  # 17
-    "rest_quarter.",  # 18
-    "rest_16th",  # 19
-    "rest_16th.",  # 20
-    "rest_whole",  # 21
-    "rest_whole.",  # 22
-    "rest_32nd",  # 23
+    # # 12
+    # "note-A5_eighth",
+    # "note-A5_eighth.",
+    # "note-A5_half",
+    # "note-A5_half.",
+    # "note-A5_quarter",
+    # "note-A5_quarter.",
+    # "note-A5_16th",
+    # "note-A5_16th.",
+    # "note-A5_whole",
+    # "note-A5_whole.",
+    # "note-A5_32nd",
+    # # 13
+    # "note-B5_eighth",
+    # "note-B5_eighth.",
+    # "note-B5_half",
+    # "note-B5_half.",
+    # "note-B5_quarter",
+    # "note-B5_quarter.",
+    # "note-B5_16th",
+    # "note-B5_16th.",
+    # "note-B5_whole",
+    # "note-B5_whole.",
+    # "note-B5_32nd",
+    # #
+    # "rest_eighth",  # 13
+    # "rest_eighth.",  # 14
+    # "rest_half",  # 15
+    # "rest_half.",  # 16
+    # "rest_quarter",  # 17
+    # "rest_quarter.",  # 18
+    # "rest_16th",  # 19
+    # "rest_16th.",  # 20
+    # "rest_whole",  # 21
+    # "rest_whole.",  # 22
+    # "rest_32nd",  # 23
 ]
-
 # 문자를 숫자로 변환
 char_to_num = layers.StringLookup(vocabulary=list(char_to_int_mapping), mask_token=None)
 
