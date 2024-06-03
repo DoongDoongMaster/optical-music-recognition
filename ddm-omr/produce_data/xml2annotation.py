@@ -14,10 +14,11 @@ class Xml2Annotation:
                 # if clef is not None:
                 #     stave_string += f"clef-{clef.find('sign').text}"
 
-                # time signature 처리
-                time = element.find("time")
-                if time is not None:
-                    stave_string += f"timeSignature-{time.find('beats').text}/{time.find('beat-type').text}+"
+                # # time signature 처리
+                # time = element.find("time")
+                # if time is not None:
+                #     stave_string += f"timeSignature-{time.find('beats').text}/{time.find('beat-type').text}+"
+                continue
 
             elif element.tag == "note":
                 if element.find("rest") is not None:
@@ -63,11 +64,7 @@ class Xml2Annotation:
         # MusicXML 파일을 파싱하여 ElementTree 객체 생성
         tree = ET.parse(xml_path)
         root = tree.getroot()
-        divisions_element = root.find(".//divisions")
-        if divisions_element is not None:
-            divisions_value = int(divisions_element.text)
-        division = divisions_value
-
+        division = Xml2Annotation.get_xml2division(xml_path)
         # 각 stave에 대한 문자열을 저장할 리스트
         annotation_list = []
 
@@ -87,6 +84,36 @@ class Xml2Annotation:
             annotation_list.append(measure_tmp[:-1])
             measure_tmp = ""
         return annotation_list
+
+    @staticmethod
+    def get_xml2division(xml_path):
+        tree = ET.parse(xml_path)
+        root = tree.getroot()
+
+        divisions_element = root.find(".//divisions")
+        if divisions_element is not None:
+            divisions_value = int(divisions_element.text)
+        division = divisions_value
+        return division
+
+    @staticmethod
+    def xml2annotation_one(xml_path):
+        # 3. note 삽입: pitch, duration, rest 삽입!!
+        # 4. if 동시에 나온 note일 시, | 으로 구분
+        # 5. else + 로 연결
+
+        # MusicXML 파일을 파싱하여 ElementTree 객체 생성
+        tree = ET.parse(xml_path)
+        root = tree.getroot()
+        division = Xml2Annotation.get_xml2division(xml_path)
+
+        # measure 태그를 가진 모든 element에 대해 처리
+        measure_tmp = ""
+        for measure in root.findall(".//measure"):
+            measure_tmp += Xml2Annotation.process_measure(measure, division)
+            # annotation_list.append(measure_tmp[:-1])
+            # measure_tmp = ""
+        return measure_tmp[:-1]  # 마지막 +
 
     @staticmethod
     def save_txt(path, string):

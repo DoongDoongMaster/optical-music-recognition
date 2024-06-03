@@ -53,7 +53,7 @@ class Image2Augment:
         elif img.ndim == 2:
             # 3. 이미 그레이스케일
             gray = img
-        
+
         else:
             raise RuntimeError("Unsupported image type!")
 
