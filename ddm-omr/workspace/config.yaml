@@ -22,8 +22,8 @@ measure_height: 120
 score_width: 1024
 
 channels: 1
-max_height: 128
-max_width: 256
+max_height: 64
+max_width: 128
 max_seq_len: 24
 
 batch_size: 16
