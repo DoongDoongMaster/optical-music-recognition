@@ -14,10 +14,10 @@ class Xml2Annotation:
                 # if clef is not None:
                 #     stave_string += f"clef-{clef.find('sign').text}"
 
-                # # time signature 처리
-                # time = element.find("time")
-                # if time is not None:
-                #     stave_string += f"timeSignature-{time.find('beats').text}/{time.find('beat-type').text}+"
+                # time signature 처리
+                time = element.find("time")
+                if time is not None:
+                    stave_string += f"timeSignature-{time.find('beats').text}/{time.find('beat-type').text}+"
                 continue
 
             elif element.tag == "note":
