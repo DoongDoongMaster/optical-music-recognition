@@ -45,7 +45,7 @@ DATASET_PATH = "./osmd-dataset"
 실행 위치: `./osmd`
 
 ```
-docker compose build
+sudo docker compose build
 ```
 
 ## 3. 실행
@@ -53,5 +53,5 @@ docker compose build
 실행 위치: `./osmd`
 
 ```
-docker compose up
+sudo docker compose up
 ```
