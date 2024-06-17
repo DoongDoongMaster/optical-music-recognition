@@ -212,6 +212,10 @@ class ProduceDataset(object):
         cv2.imwrite(f"{path}.png", img)
         print("-- shape: ", img.shape)
 
+    def save_txt(self, path, string):
+        with open(f"{path}.txt", "w") as file:
+            file.write(string)
+
     def get_json_data(self, json_path):
         with open(json_path, "r") as json_file:
             data = json.load(json_file)
@@ -254,68 +258,123 @@ class ProduceDataset(object):
             json_cursor_list = json_data["cursorList"]
             json_measure_list = json_data["measureList"]
 
-            print(">>>", json_data)
-            note_idx = 0
-            cursor_idx = 0  # 잘린 사진 인덱스
-            result_annotation = []
+            # print("json_measure_list>>>", json_measure_list)
+            # [[{'top': 39, 'left': 50, 'height': 40, 'width': 341, 'timestamp': 0.875},
+            # {'top': 39, 'left': 391.112, 'height': 40, 'width': 156, 'timestamp': 1.75},
+            # {'top': 39, 'left': 547.679, 'height': 40, 'width': 156, 'timestamp': 2.75}]]
+
             PAD = 10
+
+            note_idx = 0  # 노트 인덱스
+            note_end_idx = 0  # 노트 마지막 기준 인덱스
+            image_cursor_idx = 0  # 잘린 사진 인덱스
+            json_cursor_idx = 0  # 커서 인덱스
+            json_measure_idx = 0  # 마디 인덱스
+            result_annotation = []
+
+            # print(img_cursor_list)
 
             len_total_elements = sum(len(row) for row in json_cursor_list)
             len_notes = len(note_list)
-            if len_total_elements == len_notes:
-                # json 노트 개수와 xml 노트 개수가 맞을 경우만 통과
+
+            # 주의! timeSignature-4/4 가 함께 있기 때문에 분리해주기
+            time_signature = note_list[:1]
+            note_list = note_list[1:]
+            # json 노트 개수와 xml 노트 개수가 맞을 경우만 통과
+            if len_total_elements == len_notes - 1:
 
                 # note_list : 1D
+                # img_cursor_list : 1D
                 # json_cursor_list : 2D
+                # json_measure_list : 2D
 
-                for json_cursor_ in json_cursor_list:
-                    annotation_tmp = []
-                    while note_idx < len(json_cursor_):
+                # stave마다
+                for json_cursor_th, json_cursor_ in enumerate(json_cursor_list):
+                    json_measure_ = json_measure_list[json_cursor_th]
+                    # [{'top': 39, 'left': 50, 'height': 40, 'width': 341, 'timestamp': 0.875},
+                    # {'top': 39, 'left': 391.112, 'height': 40, 'width': 259, 'timestamp': 1.875},
+                    # {'top': 39, 'left': 650.246, 'height': 40, 'width': 156, 'timestamp': 2.75}]
+                    # print("json_measure_ >>>>>", json_measure_)
+
+                    # 첫 stave 시작 시, percussion 필수 포함
+                    annotation_tmp = ["clef-percussion"]
+                    if json_cursor_th == 0:
+                        annotation_tmp += time_signature
+                    json_cursor_idx = 0
+                    note_end_idx += len(json_cursor_)
+
+                    is_aval = True
+
+                    while note_idx < note_end_idx:
+                        # print(note_idx, "-----:", annotation_tmp)
+
+                        # json_bar_ : {'top': 39, 'left': 50, 'height': 40, 'width': 341, 'timestamp': 0.875}
+                        json_bar_ = json_measure_[json_measure_idx]
+                        json_bar_left = json_bar_["left"]
+                        json_bar_width = json_bar_["width"]
+                        json_bar_right = json_bar_left + json_bar_width
+
                         # json_note_ : {'top': 39, 'left': 321.213, 'height': 40, 'width': 20, 'timestamp': 0.75}
-                        json_note_ = json_cursor_[note_idx]
+                        json_note_ = json_cursor_[json_cursor_idx]
                         xml_note_ = note_list[note_idx]
                         # xml_note_: note-G5_eighth|note-C5_eighth
-                        print("?>>>>>>>>", json_note_["left"])
-                        print("???????>>>>>>>>", img_cursor_list[cursor_idx])
-                        if json_note_["left"] + PAD < img_cursor_list[cursor_idx]:
+                        json_note_info = json_note_["left"] + PAD
+
+                        # print("image_cursor_idx>>", image_cursor_idx)
+                        # print("json_note_info>>", json_note_info)
+                        if len(img_cursor_list) <= image_cursor_idx:
+                            is_aval = False
+                            break
+
+                        # 마디선이 해당 음표 위치 위치보다 왼쪽에 있게 될 때, 이미지 크기보단 왼쪽에 있는 경우
+                        if json_bar_right < json_note_info:
+                            json_measure_idx += 1
+                            if json_bar_right < img_cursor_list[image_cursor_idx]:
+                                annotation_tmp.append("barline")
+
+                        # 해당 음표 위치가 잘린 이미지 위치보다 왼쪽에 있을 때
+                        if json_note_info < img_cursor_list[image_cursor_idx]:
                             annotation_tmp.append(xml_note_)
                             note_idx += 1
+                            json_cursor_idx += 1
+                        # 해당 음표 위치가 잘린 이미지 위치보다 오른쪽에 있을 때
                         else:
-                            cursor_idx += 1
+                            result_annotation.append("+".join(annotation_tmp))
+                            annotation_tmp = []
+                            image_cursor_idx += 1
 
-                    result_annotation.append("+".join(annotation_tmp))
+                        # 마디선이 해당 음표 위치 위치보다 왼쪽에 있게 될 때, 이미지 크기보다 오른쪽에 있는 경우
+                        if json_bar_right < json_note_info:
+                            if json_bar_right >= img_cursor_list[image_cursor_idx - 1]:
+                                annotation_tmp.append("barline")
 
-                # cutted_cursor = img_cursor_list[cut_idx]
-
-                # for note_idx in range(len(note_list)):
-                #     note_ = note_list[note_idx]
-                #     note_ = note_list[note_idx]
+                    if is_aval:
+                        # 마지막 노트
+                        annotation_tmp.append("barline")
+                        result_annotation.append("+".join(annotation_tmp))
 
             print(result_annotation)
-            return
 
-            # for idx in range(len(measure_list)):
-            #     try:
-            #         meas = measure_list[idx]  # measure imgs
-            #         if isNeedAnno:
-            #             anno = annotation_list[idx]  # annotations
+            measure_list = img_list
+            annotation_list = result_annotation
 
-            #         # measure 마다 png, txt 저장
-            #         date_time = Util.get_datetime()
-            #         dir_path = (
-            #             f"{self.args.filepaths.feature_path.seq}/{title}/{title}-{idx}"
-            #         )
-            #         if isNeedAnno:
-            #             os.makedirs(f"{dir_path}", exist_ok=True)
-            #         file_path = f"{dir_path}/{title}_{idx}_{date_time}"
+            for idx in range(len(measure_list)):
+                try:
+                    meas = measure_list[idx]  # measure imgs
+                    anno = annotation_list[idx]  # annotations
 
-            #         print(file_path)
+                    # measure 마다 png, txt 저장
+                    date_time = Util.get_datetime()
+                    dir_path = f"{self.args.filepaths.feature_path.seq}/{title}/{title}-{idx:04d}"
+                    os.makedirs(f"{dir_path}", exist_ok=True)
+                    file_path = f"{dir_path}/{title}_{idx:04d}_{date_time}"
 
-            #         Score2Measure.save_png(file_path, meas)
-            #         if isNeedAnno:
-            #             Xml2Annotation.save_txt(file_path, anno)
-            #     except:
-            #         print("!! -- 저장 실패")
+                    print(file_path)
+
+                    self.save_png(file_path, meas)
+                    self.save_txt(file_path, anno)
+                except:
+                    print("!! -- 저장 실패")
 
 
 if __name__ == "__main__":
