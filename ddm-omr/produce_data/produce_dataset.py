@@ -258,16 +258,21 @@ class ProduceDataset(object):
             json_cursor_list = json_data["cursorList"]
             json_measure_list = json_data["measureList"]
 
-            # print(">>>", json_data)
+            # print("json_measure_list>>>", json_measure_list)
+            # [[{'top': 39, 'left': 50, 'height': 40, 'width': 341, 'timestamp': 0.875},
+            # {'top': 39, 'left': 391.112, 'height': 40, 'width': 156, 'timestamp': 1.75},
+            # {'top': 39, 'left': 547.679, 'height': 40, 'width': 156, 'timestamp': 2.75}]]
+
             PAD = 10
 
             note_idx = 0  # 노트 인덱스
             note_end_idx = 0  # 노트 마지막 기준 인덱스
             image_cursor_idx = 0  # 잘린 사진 인덱스
             json_cursor_idx = 0  # 커서 인덱스
+            json_measure_idx = 0  # 마디 인덱스
             result_annotation = []
 
-            print(img_cursor_list)
+            # print(img_cursor_list)
 
             len_total_elements = sum(len(row) for row in json_cursor_list)
             len_notes = len(note_list)
@@ -279,14 +284,21 @@ class ProduceDataset(object):
             if len_total_elements == len_notes - 1:
 
                 # note_list : 1D
-                # json_cursor_list : 2D
                 # img_cursor_list : 1D
+                # json_cursor_list : 2D
+                # json_measure_list : 2D
 
-                for json_cursor_num, json_cursor_ in enumerate(json_cursor_list):
+                # stave마다
+                for json_cursor_th, json_cursor_ in enumerate(json_cursor_list):
+                    json_measure_ = json_measure_list[json_cursor_th]
+                    # [{'top': 39, 'left': 50, 'height': 40, 'width': 341, 'timestamp': 0.875},
+                    # {'top': 39, 'left': 391.112, 'height': 40, 'width': 259, 'timestamp': 1.875},
+                    # {'top': 39, 'left': 650.246, 'height': 40, 'width': 156, 'timestamp': 2.75}]
+                    # print("json_measure_ >>>>>", json_measure_)
 
                     # 첫 stave 시작 시, percussion 필수 포함
                     annotation_tmp = ["clef-percussion"]
-                    if json_cursor_num == 0:
+                    if json_cursor_th == 0:
                         annotation_tmp += time_signature
                     json_cursor_idx = 0
                     note_end_idx += len(json_cursor_)
@@ -295,29 +307,50 @@ class ProduceDataset(object):
 
                     while note_idx < note_end_idx:
                         # print(note_idx, "-----:", annotation_tmp)
+
+                        # json_bar_ : {'top': 39, 'left': 50, 'height': 40, 'width': 341, 'timestamp': 0.875}
+                        json_bar_ = json_measure_[json_measure_idx]
+                        json_bar_left = json_bar_["left"]
+                        json_bar_width = json_bar_["width"]
+                        json_bar_right = json_bar_left + json_bar_width
+
                         # json_note_ : {'top': 39, 'left': 321.213, 'height': 40, 'width': 20, 'timestamp': 0.75}
                         json_note_ = json_cursor_[json_cursor_idx]
                         xml_note_ = note_list[note_idx]
                         # xml_note_: note-G5_eighth|note-C5_eighth
                         json_note_info = json_note_["left"] + PAD
 
-                        print("image_cursor_idx>>", image_cursor_idx)
-                        print("json_note_info>>", json_note_info)
+                        # print("image_cursor_idx>>", image_cursor_idx)
+                        # print("json_note_info>>", json_note_info)
                         if len(img_cursor_list) <= image_cursor_idx:
                             is_aval = False
                             break
 
+                        # 마디선이 해당 음표 위치 위치보다 왼쪽에 있게 될 때, 이미지 크기보단 왼쪽에 있는 경우
+                        if json_bar_right < json_note_info:
+                            json_measure_idx += 1
+                            if json_bar_right < img_cursor_list[image_cursor_idx]:
+                                annotation_tmp.append("barline")
+
+                        # 해당 음표 위치가 잘린 이미지 위치보다 왼쪽에 있을 때
                         if json_note_info < img_cursor_list[image_cursor_idx]:
                             annotation_tmp.append(xml_note_)
                             note_idx += 1
                             json_cursor_idx += 1
+                        # 해당 음표 위치가 잘린 이미지 위치보다 오른쪽에 있을 때
                         else:
                             result_annotation.append("+".join(annotation_tmp))
                             annotation_tmp = []
                             image_cursor_idx += 1
 
+                        # 마디선이 해당 음표 위치 위치보다 왼쪽에 있게 될 때, 이미지 크기보다 오른쪽에 있는 경우
+                        if json_bar_right < json_note_info:
+                            if json_bar_right >= img_cursor_list[image_cursor_idx - 1]:
+                                annotation_tmp.append("barline")
+
                     if is_aval:
                         # 마지막 노트
+                        annotation_tmp.append("barline")
                         result_annotation.append("+".join(annotation_tmp))
 
             print(result_annotation)
