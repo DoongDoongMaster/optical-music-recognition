@@ -1,10 +1,10 @@
 import FS from "fs";
 
-const defaultCursorHeight = 40;
 const defaultCursorWidth = 30;
+const defaultCursorHeight = 40;
 
-const cursorHeight = 40;
 const cursorWidth = 20;
+const cursorHeight = 40;
 
 /**
  * 커서에서 정보 뽑아오기: 필요한 정보만 추출(top, left, width, height,
@@ -56,7 +56,9 @@ export function extractCursorInfo(cursor) {
   const cursorList = [];
   const measureList = [];
 
-  cursor.show(); // this would show the cursor on the first note
+  cursor.CursorOptions.type = 0;
+  cursor.resetIterator();
+  cursor.show();
 
   try {
     while (!cursor.iterator.endReached) {
