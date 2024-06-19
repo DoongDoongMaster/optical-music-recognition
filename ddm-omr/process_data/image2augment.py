@@ -29,6 +29,18 @@ class Image2Augment:
         """
         # 1. 이미지를 원래의 채널 수와 비트 깊이 그대로 읽음
         img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
+        biImg = Image2Augment.img2binary(img)
+        return biImg
+    
+    @staticmethod
+    def img2binary(img):
+        """
+        배경이 흰색이든 투명이든 처리하여 Binary 이미지를 생성
+        rgb img -> binary img
+        input : rgb image
+        return : binary image
+        """
+        # 1. 이미지를 원래의 채널 수와 비트 깊이 그대로 읽음
         if img is None:
             raise RuntimeError("Image not found or unable to load.")
 
