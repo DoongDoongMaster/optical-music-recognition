@@ -108,7 +108,7 @@ class SheetToScore(object):
         score로부터 stave image추출
         """
 
-        biImg = score
+        biImg = Image2Augment.img2binary(score)
 
         (h, w) = biImg.shape[:2]
         target_width = self.args.score_width
