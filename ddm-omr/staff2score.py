@@ -430,6 +430,7 @@ class StaffToScore(object):
         return x_preprocessed_list, result_note
 
     def model_predict(self, x_preprocessed_list):
+        # print(">>>>>>>>>>>", len(x_preprocessed_list))
         # 리스트를 tf.Tensor로 변환
         pitch_dataset = tf.data.Dataset.from_tensor_slices(
             np.array(x_preprocessed_list)
@@ -530,8 +531,6 @@ class StaffToScore(object):
         datetime=Util.get_datetime()
         plt.savefig(f"dataset-output/dataset-{datetime}.png")
         plt.show()
-
-        return
 
         # Get the model
         # ----------------- 이어서 학습시키고 싶으면-------------

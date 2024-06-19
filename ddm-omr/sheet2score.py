@@ -58,7 +58,7 @@ class SheetToScore(object):
         # 1. stave라고 판단된 것 중에 임의 height 이상일 때 stave라고 판단
         for stave in stave_list:
             h, _ = stave.shape
-            if h >= min_h:
+            if h >= 10:
                 result_stave_list.append(stave)
         return result_stave_list
 
@@ -95,6 +95,33 @@ class SheetToScore(object):
         biImg = cv2.resize(
             biImg, (target_width, target_height), interpolation=cv2.INTER_AREA
         )
+
+
+        # 배경이 검정색인 binary image일 때 잘 추출하더라
+        cnt, _, stats, _ = self.extract_segment_from_score(biImg)
+        stave_list = self.extract_stave_from_score(biImg, cnt, stats)
+        return stave_list
+
+
+    def transform_scoreImg2stave(self, score):
+        """
+        score로부터 stave image추출
+        """
+
+        biImg = score
+
+        (h, w) = biImg.shape[:2]
+        target_width = self.args.score_width
+
+        # 비율 계산
+        ratio = target_width / float(w)
+        target_height = int(h * ratio)
+
+        # 이미지 리사이즈
+        biImg = cv2.resize(
+            biImg, (target_width, target_height), interpolation=cv2.INTER_AREA
+        )
+
 
         # 배경이 검정색인 binary image일 때 잘 추출하더라
         cnt, _, stats, _ = self.extract_segment_from_score(biImg)
@@ -143,11 +170,29 @@ class SheetToScore(object):
     def preprocessing(self, score_path):
         # ------------ 전처리 ------------------
         stave_list = self.transform_score2stave(score_path)  # stave 추출
+
         measure_list = []
         for idx, stave in enumerate(stave_list):
             measures = self.stave2measure(stave)  # measure 추출
             measure_list += measures
         x_preprocessed_list = []
+
+        print("measure_list>>>>>>>>>", measure_list)
+        for biImg in measure_list:
+            x_preprocessed_list.append(Image2Augment.resizeimg(self.args, biImg))
+
+        return x_preprocessed_list
+    
+    def imagePreprocessing(self, score):
+        # ------------ 전처리 ------------------
+        stave_list = self.transform_scoreImg2stave(score)  # stave 추출
+
+        measure_list = []
+        for idx, stave in enumerate(stave_list):
+            measures = self.stave2measure(stave)  # measure 추출
+            measure_list += measures
+        x_preprocessed_list = []
+
         for biImg in measure_list:
             x_preprocessed_list.append(Image2Augment.resizeimg(self.args, biImg))
 
@@ -175,18 +220,23 @@ class SheetToScore(object):
     def predict(self, score_path):
         x_preprocessed_list=self.preprocessing(score_path)
 
-
-        # print(x_preprocessed_list)
         # self.save_stave("demo-test", x_preprocessed_list)
-
-
 
         result = self.staff2score.model_predict(x_preprocessed_list)
         postresult =self.postprocessing(result)
         print(postresult)
         return postresult
 
-    
+    def inferSheetToXml(self, score):
+        x_preprocessed_list=self.imagePreprocessing(score)
+
+        # self.save_stave("demo-test", x_preprocessed_list)
+
+        result = self.staff2score.model_predict(x_preprocessed_list)
+        postresult =self.postprocessing(result)
+        xml_tree = Annotation2Xml.annotation_to_musicxml(postresult)
+
+        return xml_tree
 
 if __name__ == "__main__":
     from configs import getconfig

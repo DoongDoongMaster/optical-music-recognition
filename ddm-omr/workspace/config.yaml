@@ -9,7 +9,7 @@ filepaths:
     base: ../data/processed-feature
     seq: ../data/processed-feature/sequence-annotation
   raw_path:
-    osmd: ../data/raw/osmd-dataset-v1.0.0
+    osmd: ../data/raw/osmd-dataset-v1.0.1
   test_path: ../data/test/test_omr
   test_demo: ../data/test
 
@@ -22,8 +22,8 @@ measure_height: 120
 score_width: 1024
 
 channels: 1
-max_height: 64
-max_width: 128
+max_height: 128
+max_width: 256
 max_seq_len: 24
 
 batch_size: 16
