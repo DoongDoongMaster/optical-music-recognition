@@ -5,8 +5,8 @@ import re
 import cv2
 import sys
 
-sys.path.append("/mnt/c/Users/wotjr/Documents/Github/optical-music-recognition/ddm-omr")
-from xml2annotation import Xml2Annotation
+# sys.path.append("/home/a2071027/srv/projects/optical-music-recognition/ddm-omr")
+from produce_data.xml2annotation import Xml2Annotation
 from process_data.image2augment import Image2Augment
 
 from util import Util
@@ -326,6 +326,26 @@ class ProduceDataset(object):
                             is_aval = False
                             break
 
+
+                        # # 해당 음표 위치가 잘린 이미지 위치보다 왼쪽에 있을 때
+                        # if json_note_info < img_cursor_list[image_cursor_idx]:
+                        #     # 마디선이 해당 음표 위치 위치보다 왼쪽에 있게 될 때, 이미지 크기보단 왼쪽에 있는 경우
+
+                        #     print(json_cursor_)
+
+                        #     print(json_note_info," ", img_cursor_list[image_cursor_idx]," ", xml_note_)
+
+                        #     annotation_tmp.append(xml_note_)
+                        #     note_idx += 1
+                        #     json_cursor_idx += 1
+                        # # 해당 음표 위치가 잘린 이미지 위치보다 오른쪽에 있을 때
+                        # else:
+                        #     result_annotation.append("+".join(annotation_tmp))
+                        #     annotation_tmp = []
+                        #     image_cursor_idx += 1
+
+                        print(json_note_info," ",json_bar_right," ", img_cursor_list[image_cursor_idx]," ", xml_note_)
+
                         # 마디선이 해당 음표 위치 위치보다 왼쪽에 있게 될 때, 이미지 크기보단 왼쪽에 있는 경우
                         if json_bar_right < json_note_info:
                             json_measure_idx += 1
@@ -343,10 +363,10 @@ class ProduceDataset(object):
                             annotation_tmp = []
                             image_cursor_idx += 1
 
-                        # 마디선이 해당 음표 위치 위치보다 왼쪽에 있게 될 때, 이미지 크기보다 오른쪽에 있는 경우
-                        if json_bar_right < json_note_info:
-                            if json_bar_right >= img_cursor_list[image_cursor_idx - 1]:
-                                annotation_tmp.append("barline")
+                        # # 마디선이 해당 음표 위치 위치보다 왼쪽에 있게 될 때, 이미지 크기보다 오른쪽에 있는 경우
+                        # if json_bar_right < json_note_info:
+                        #     if json_bar_right >= img_cursor_list[image_cursor_idx - 1]:
+                        #         annotation_tmp.append("barline")
 
                     if is_aval:
                         # 마지막 노트
@@ -358,7 +378,15 @@ class ProduceDataset(object):
             measure_list = img_list
             annotation_list = result_annotation
 
-            for idx in range(len(measure_list)):
+            data_leng=len(measure_list)
+
+            if len(measure_list)!=len(annotation_list):
+                print("개수 맞지 않음 >>", len(measure_list), " != ", len(annotation_list))
+                data_leng=min(len(measure_list),len(annotation_list))
+                
+
+
+            for idx in range(data_leng):
                 try:
                     meas = measure_list[idx]  # measure imgs
                     anno = annotation_list[idx]  # annotations
@@ -373,21 +401,11 @@ class ProduceDataset(object):
 
                     self.save_png(file_path, meas)
                     self.save_txt(file_path, anno)
-                except:
+
+                except Exception as e:
+                    print(e)
                     print("!! -- 저장 실패")
 
+            print()
 
-if __name__ == "__main__":
-    from configs import getconfig
 
-    cofigpath = f"workspace/config.yaml"
-    args = getconfig(cofigpath)
-
-    # 1. 예측할 악보
-    score_path = f"{args.filepaths.test_demo}/demo.png"
-
-    handler = ProduceDataset(args)
-    predict_result = handler.produce_all_dataset()
-    # xml_tree = Annotation2Xml.annotation_to_musicxml(predict_result)
-
-    # self.handler.predict(biImg_list)
