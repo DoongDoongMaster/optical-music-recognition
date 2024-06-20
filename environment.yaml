@@ -165,4 +165,4 @@ dependencies:
       - werkzeug==3.0.3
       - wrapt==1.14.1
       - x-transformers==1.28.5
-prefix: /home/sua/anaconda3/envs/omr
+prefix: /home/a2071027/anaconda3/envs/omr
