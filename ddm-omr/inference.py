@@ -1,37 +1,19 @@
-import os
-from process_data.image2augment import Image2Augment
 from configs import getconfig
-from produce_data.data_processing import DataProcessing
-
-import sys
-
-# sys.path.append("/mnt/c/Users/wotjr/Documents/Github/optical-music-recognition/ddm-omr")
-from staff2score import StaffToScore
 from sheet2score import SheetToScore
+import argparse
 
-cofigpath = f"workspace/config.yaml"
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Inference single staff image")
+    parser.add_argument("filepath", type=str, help="path to staff image")
+    parsed_args = parser.parse_args()
 
-args = getconfig(cofigpath)
-# DataProcessing.process_all_score2measure(args, True)
+    cofigpath = f"workspace/config.yaml"
+    args = getconfig(cofigpath)
 
-staff2score = StaffToScore(args)
-staff2score.training()
-# staff2score.test()
+    # 예측할 악보
+    score_path = parsed_args.filepath
 
-# x_raw_path_list = [
-#     f"../data/test/Rock-ver_measure_02_2024-05-19_05-31-40.png",
-#     f"../data/test/test_img.png",
-# ]
-# x_preprocessed_list = []
-# for x_raw_path in x_raw_path_list:
-#     biImg = Image2Augment.readimg(x_raw_path)
-#     biImg = 255 - biImg
-#     x_preprocessed_list.append(Image2Augment.resizeimg(args, biImg))
+    handler = SheetToScore(args)
+    predict_result = handler.predict(score_path)
 
-# print("전처리 후 x 개수: ", len(x_preprocessed_list))
-
-
-# staff2score.model_predict(x_preprocessed_list)
-
-# # sheet2stave = SheetToScore(args)
-# # sheet2stave.sheet2stave()
+    print(predict_result)
