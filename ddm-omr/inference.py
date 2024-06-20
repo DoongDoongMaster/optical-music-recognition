@@ -7,7 +7,7 @@ if __name__ == "__main__":
     parser.add_argument("filepath", type=str, help="path to staff image")
     parsed_args = parser.parse_args()
 
-    cofigpath = f"workspace/config.yaml"
+    cofigpath = f"ddm-omr/workspace/config.yaml"
     args = getconfig(cofigpath)
 
     # 예측할 악보
@@ -16,4 +16,3 @@ if __name__ == "__main__":
     handler = SheetToScore(args)
     predict_result = handler.predict(score_path)
 
-    print(predict_result)
