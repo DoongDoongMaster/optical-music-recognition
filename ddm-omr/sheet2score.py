@@ -96,12 +96,10 @@ class SheetToScore(object):
             biImg, (target_width, target_height), interpolation=cv2.INTER_AREA
         )
 
-
         # 배경이 검정색인 binary image일 때 잘 추출하더라
         cnt, _, stats, _ = self.extract_segment_from_score(biImg)
         stave_list = self.extract_stave_from_score(biImg, cnt, stats)
         return stave_list
-
 
     def transform_scoreImg2stave(self, score):
         """
@@ -121,7 +119,6 @@ class SheetToScore(object):
         biImg = cv2.resize(
             biImg, (target_width, target_height), interpolation=cv2.INTER_AREA
         )
-
 
         # 배경이 검정색인 binary image일 때 잘 추출하더라
         cnt, _, stats, _ = self.extract_segment_from_score(biImg)
@@ -166,7 +163,7 @@ class SheetToScore(object):
             start_x += max_w
 
         return result
-    
+
     def preprocessing(self, score_path):
         # ------------ 전처리 ------------------
         stave_list = self.transform_score2stave(score_path)  # stave 추출
@@ -182,7 +179,7 @@ class SheetToScore(object):
             x_preprocessed_list.append(Image2Augment.resizeimg(self.args, biImg))
 
         return x_preprocessed_list
-    
+
     def imagePreprocessing(self, score):
         # ------------ 전처리 ------------------
         stave_list = self.transform_scoreImg2stave(score)  # stave 추출
@@ -197,7 +194,7 @@ class SheetToScore(object):
             x_preprocessed_list.append(Image2Augment.resizeimg(self.args, biImg))
 
         return x_preprocessed_list
-    
+
     def postprocessing(self, predict_result):
         # 함수 정의
         def process_string(s):
@@ -216,39 +213,23 @@ class SheetToScore(object):
         print(">>>>", result)
         return result
 
-
     def predict(self, score_path):
-        x_preprocessed_list=self.preprocessing(score_path)
+        x_preprocessed_list = self.preprocessing(score_path)
 
         # self.save_stave("demo-test", x_preprocessed_list)
 
         result = self.staff2score.model_predict(x_preprocessed_list)
-        postresult =self.postprocessing(result)
+        postresult = self.postprocessing(result)
         print(postresult)
         return postresult
 
     def inferSheetToXml(self, score):
-        x_preprocessed_list=self.imagePreprocessing(score)
+        x_preprocessed_list = self.imagePreprocessing(score)
 
         # self.save_stave("demo-test", x_preprocessed_list)
 
         result = self.staff2score.model_predict(x_preprocessed_list)
-        postresult =self.postprocessing(result)
+        postresult = self.postprocessing(result)
         xml_tree = Annotation2Xml.annotation_to_musicxml(postresult)
 
         return xml_tree
-
-if __name__ == "__main__":
-    from configs import getconfig
-
-    cofigpath = f"workspace/config.yaml"
-    args = getconfig(cofigpath)
-
-    # 1. 예측할 악보
-    score_path = f"{args.filepaths.test_demo}/demo.png"
-
-    handler = SheetToScore(args)
-    predict_result = handler.predict(score_path)
-    xml_tree = Annotation2Xml.annotation_to_musicxml(predict_result)
-
-    # self.handler.predict(biImg_list)
