@@ -12,13 +12,13 @@
 ## Introduction <a name = "Introduction"></a>
 
 ### About OMR
-광학 음악 인식(Optical Music Recognition)은 이미지에서 악보를 계산적으로 디코딩하는 방법을 조사하는 연구 분야이다.
+광학 음악 인식(Optical Music Recognition)은 이미지에서 악보를 계산적으로 디코딩하는 방법을 조사하는 연구 분야임.
 ![image](https://github.com/DoongDoongMaster/optical-music-recognition/assets/68185825/87805343-fd39-4791-b47c-70671e8dc184)
 
 🔗 [이미지 출처](https://link.springer.com/article/10.1007/s13735-023-00278-5/figures/1)
 
 ### In This Project
-해당 프로젝트에서는 End-to-End Neural Optical Music Recognition of Monophonic Scores [1] 에서 제안하는 end-to-end 방식으로 작동하는 신경망을 구현했습니다.
+해당 프로젝트에서는 End-to-End Neural Optical Music Recognition of Monophonic Scores [1] 에서 제안하는 end-to-end 방식으로 작동하는 신경망을 구현함.
 ![image](https://github.com/DoongDoongMaster/optical-music-recognition/assets/68185825/927776ab-9326-433b-91ac-97563644a3fe)
 
 🔗 [이미지 출처](https://www.mdpi.com/2076-3417/8/4/606)
