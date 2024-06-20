@@ -4,7 +4,6 @@
 
 - [Introduction](#Introduction)
 - [Dataset](#Dataset)
-- [Experiment](#Experiment)
 - [Preparation](#Preparation)
 - [Inference](#Inference)
 - [Demonstrations](#Demonstrations)
@@ -41,12 +40,22 @@ conda env create --file environment.yaml
 
 ## Inference <a name = "Inference"></a>
 ```
-python ./ddm-omr/inference.py ./examples/photo4.jpg
+python ./ddm-omr/inference.py ./examples/photo1.png
 ```
 
 ## Demonstrations <a name = "Demonstrations"></a>
-![image](https://github.com/DoongDoongMaster/optical-music-recognition/assets/68185825/9df8abe8-94c6-4d21-ac77-520f29759105)
 
+
+<div align="center">
+ <font size = "70"><h3>Result</h3></font>
+</div>
+<div align="center">
+  <a href="" rel="noopener">
+ <img src="./examples/photo1.png" width="1000px" alt="Dataset"></a>
+</div>
+<div align="center">
+<table><tr><td >clef-percussion+note-F4_eighth|note-G5_eighth+note-G5_eighth+note-C5_eighth|note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth+note-C5_eighth|note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth|note-G5_eighth+note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth+note-C5_eighth|note-G5_eighth+note-G5_eighth|note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth+note-F4_eighth|note-G5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+barline</td></tr></table>​​​​​​​
+</div>
 
 ## References <a name = "References"></a>
 [1] Jorge Calvo-Zaragoza, David Rizo. End-to-End Neural Optical Music Recognition of Monophonic Scores. MDPI, 11 April 2018.
