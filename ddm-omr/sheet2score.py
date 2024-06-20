@@ -220,7 +220,7 @@ class SheetToScore(object):
 
         result = self.staff2score.model_predict(x_preprocessed_list)
         postresult = self.postprocessing(result)
-        print(postresult)
+        # print(postresult)
         return postresult
 
     def inferSheetToXml(self, score):

@@ -3,8 +3,8 @@
 #*************************************************
 filepaths:
   model_path:
-    base: workspace/models
-    model: workspace/models/omr
+    base: ddm-omr/workspace/models
+    model: ddm-omr/workspace/models/omr
   feature_path:
     base: ../data/processed-feature
     seq: ../data/processed-feature/sequence-annotation
