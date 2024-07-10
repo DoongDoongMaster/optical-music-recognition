@@ -4,7 +4,6 @@
 
 - [Introduction](#Introduction)
 - [Dataset](#Dataset)
-- [Experiment](#Experiment)
 - [Preparation](#Preparation)
 - [Inference](#Inference)
 - [Demonstrations](#Demonstrations)
@@ -13,16 +12,21 @@
 ## Introduction <a name = "Introduction"></a>
 
 ### About OMR
-광학 음악 인식(Optical Music Recognition)은 이미지에서 악보를 계산적으로 디코딩하는 방법을 조사하는 연구 분야이다.
+광학 음악 인식(Optical Music Recognition)은 이미지에서 악보를 계산적으로 디코딩하는 방법을 조사하는 연구 분야임.
 ![image](https://github.com/DoongDoongMaster/optical-music-recognition/assets/68185825/87805343-fd39-4791-b47c-70671e8dc184)
 
 🔗 [이미지 출처](https://link.springer.com/article/10.1007/s13735-023-00278-5/figures/1)
 
 ### In This Project
-해당 프로젝트에서는 End-to-End Neural Optical Music Recognition of Monophonic Scores [1] 에서 제안하는 end-to-end 방식으로 작동하는 신경망을 구현했습니다.
+해당 프로젝트에서는 End-to-End Neural Optical Music Recognition of Monophonic Scores [1] 에서 제안하는 end-to-end 방식으로 작동하는 신경망으로부터 착안하여 구현함.
+
 ![image](https://github.com/DoongDoongMaster/optical-music-recognition/assets/68185825/927776ab-9326-433b-91ac-97563644a3fe)
 
 🔗 [이미지 출처](https://www.mdpi.com/2076-3417/8/4/606)
+
+
+![image](https://github.com/DoongDoongMaster/optical-music-recognition/assets/68185825/27c1fe55-e36d-4d3f-aa5c-7763bbc31f25)
+
 
 ## Dataset <a name = "Dataset"></a>
 
@@ -41,12 +45,22 @@ conda env create --file environment.yaml
 
 ## Inference <a name = "Inference"></a>
 ```
-python ./ddm-omr/inference.py ./examples/photo4.jpg
+python ./ddm-omr/inference.py ./examples/photo1.png
 ```
 
 ## Demonstrations <a name = "Demonstrations"></a>
-![image](https://github.com/DoongDoongMaster/optical-music-recognition/assets/68185825/9df8abe8-94c6-4d21-ac77-520f29759105)
 
+
+<div align="center">
+ <font size = "70"><h3>Result</h3></font>
+</div>
+<div align="center">
+  <a href="" rel="noopener">
+ <img src="./examples/photo1.png" width="1000px" alt="Dataset"></a>
+</div>
+<div align="center">
+<table><tr><td >clef-percussion+note-F4_eighth|note-G5_eighth+note-G5_eighth+note-C5_eighth|note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth+note-C5_eighth|note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth|note-G5_eighth+note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth+note-C5_eighth|note-G5_eighth+note-G5_eighth|note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth+note-F4_eighth|note-G5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+barline</td></tr></table>​​​​​​​
+</div>
 
 ## References <a name = "References"></a>
 [1] Jorge Calvo-Zaragoza, David Rizo. End-to-End Neural Optical Music Recognition of Monophonic Scores. MDPI, 11 April 2018.
