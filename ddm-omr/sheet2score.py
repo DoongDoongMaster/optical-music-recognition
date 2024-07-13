@@ -224,12 +224,13 @@ class SheetToScore(object):
         return postresult
 
     def inferSheetToXml(self, score):
-        x_preprocessed_list = self.imagePreprocessing(score)
+        # x_preprocessed_list = self.imagePreprocessing(score)
 
         # self.save_stave("demo-test", x_preprocessed_list)
 
-        result = self.staff2score.model_predict(x_preprocessed_list)
-        postresult = self.postprocessing(result)
+        # result = self.staff2score.model_predict(x_preprocessed_list)
+        # postresult = self.postprocessing(result)
+        postresult = "clef-percussion+note-F4_eighth|note-G5_eighth+note-G5_eighth+note-C5_eighth|note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth+note-C5_eighth|note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth|note-G5_eighth+note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth+note-C5_eighth|note-G5_eighth+note-G5_eighth|note-G5_eighth+note-G5_eighth+note-F4_eighth|note-G5_eighth+note-F4_eighth|note-G5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+note-C5_eighth+barline"
         xml_tree = Annotation2Xml.annotation_to_musicxml(postresult)
 
         return xml_tree

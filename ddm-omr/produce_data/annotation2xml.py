@@ -97,7 +97,7 @@ class Annotation2Xml:
         xml_tree = ET.ElementTree(ET.fromstring(musicxml_string))
 
         # XML 파일로 저장
-        # xml_tree.write('example_score.xml', encoding='utf-8', xml_declaration=True)
+        # xml_tree.write("example_score.xml", encoding="utf-8", xml_declaration=True)
 
         return xml_tree
 
@@ -135,6 +135,7 @@ class Annotation2Xml:
 
         # 마디 기준 ('barline') 으로 자르기
         bar_list = annotation.split(BARLINE)
+        # print("bar_list:", bar_list)
 
         for bar_info in bar_list:
             if bar_info == "":
@@ -161,6 +162,8 @@ class Annotation2Xml:
 
                     # note, rest, pitch, duration 얻기
                     pitch_info, duration = note_info.split(DIVISION_DURATION)
+                    # print("1. pitch_info, duration >>> ", pitch_info, duration)
+
                     pitch_info_list = pitch_info.split(DIVISION_PITCH)
                     note_info_dict[DURATION] = DURATION_TYPE_TO_LENGTH[duration]
                     note_info_dict[IS_NOTE] = pitch_info_list[0] == NOTE
@@ -172,8 +175,72 @@ class Annotation2Xml:
                             note_info_dict[NOTEHEAD] = NOTEHEAD_X
 
                     annotation_note_list.append(note_info_dict)
-                annotation_chord_list.append(annotation_note_list)
+                    # print("2. annotation_note_list >>> ", annotation_note_list)
+
+                # 동시에 친 음표 중에 중복인 건 없애기 ex. note-G5_eighth|note-G5_eighth
+                # : 딕셔너리를 튜플로 변환하여 중복 제거
+                unique_annotation_note_list = list(
+                    {tuple(d.items()): d for d in annotation_note_list}.values()
+                )
+                # print("3. 중복 제거 >>>> ", unique_annotation_note_list)
+                annotation_chord_list.append(unique_annotation_note_list)
             annotation_dict_list.append(annotation_chord_list)
+        # print("4. annotation_dict_list:", annotation_dict_list)
+
+        """
+        note-F4_eighth|note-G5_eighth+
+        note-G5_eighth+
+        note-C5_eighth|note-G5_eighth+
+        note-G5_eighth+
+        note-F4_eighth|note-G5_eighth+
+        note-C5_eighth|note-G5_eighth+
+        note-G5_eighth+
+        note-F4_eighth|note-G5_eighth|note-G5_eighth+
+        note-G5_eighth+
+        note-G5_eighth+
+        note-F4_eighth|note-G5_eighth+
+        note-C5_eighth|note-G5_eighth+
+        note-G5_eighth|note-G5_eighth+
+        note-G5_eighth+
+        note-F4_eighth|note-G5_eighth+
+        note-F4_eighth|note-G5_eighth+
+        note-C5_eighth+
+        note-C5_eighth+
+        note-C5_eighth+
+        note-C5_eighth+
+        note-C5_eighth+
+        note-C5_eighth+
+        note-C5_eighth+
+        note-C5_eighth+
+        note-C5_eighth+
+        barline
+        """
+        """
+        annotation_dict_list: [[
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'F4', 'notehead': None}, {'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}], [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}, {'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}], [{'duration': 0.5, 'is_note': True, 'pitch': 'F4', 'notehead': None}, {'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}, {'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'F4', 'notehead': None}, {'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}, {'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'F4', 'notehead': None}, {'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}, {'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}, {'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'F4', 'notehead': None}, {'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'F4', 'notehead': None}, {'duration': 0.5, 'is_note': True, 'pitch': 'G5', 'notehead': 'x'}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}],
+        [{'duration': 0.5, 'is_note': True, 'pitch': 'C5', 'notehead': None}]]]
+        """
 
         return annotation_dict_list
 
@@ -184,7 +251,7 @@ class Annotation2Xml:
     @staticmethod
     def annotation_to_musicxml(annotation):
         annotation_dict = Annotation2Xml.split_annotation(annotation)
-        annotation_dict = Annotation2Xml.fit_annotation_bar(annotation_dict)
+        # annotation_dict = Annotation2Xml.fit_annotation_bar(annotation_dict)
 
         # Score 객체 생성
         score = stream.Score()
@@ -236,12 +303,12 @@ class Annotation2Xml:
         score.insert(0, drum_track)
 
         plt.clf()
-        score.show()
+        # score.show()
 
         # 악보 이미지의 배경 색상을 흰색으로 설정
         fig = plt.gcf()
-        fig.patch.set_facecolor('white')
-        
+        fig.patch.set_facecolor("white")
+
         IMAGE_PATH = "../images"
         os.makedirs(IMAGE_PATH, exist_ok=True)  # 이미지 폴더 생성
         date_time = datetime.now().strftime(
