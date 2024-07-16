@@ -269,16 +269,18 @@ class Annotation2Xml:
         drum_track.append(time_signature)
 
         for bar in annotation_dict:
+            measure = stream.Measure()  # Create a new Measure for each bar
             for chord_info in bar:
                 chord_notes = []
-                is_note = any(
-                    item[IS_NOTE] for item in chord_info
-                )  # 하나라도 음표 있다면
 
-                if not is_note:  # 쉼표
+                # 하나라도 음표 있다면
+                is_note = any(item[IS_NOTE] for item in chord_info)
+
+                # 쉼표
+                if not is_note:
                     r = note.Rest()
                     r.duration.quarterLength = chord_info[0][DURATION]
-                    drum_track.append(r)
+                    measure.append(r)
                     continue
 
                 # 음표
@@ -289,15 +291,16 @@ class Annotation2Xml:
                         n.duration.quarterLength = note_info[DURATION]
                         n.stemDirection = STEM_DIRECTION_UP
 
-                        if note_info[NOTEHEAD] != None:
+                        if note_info[NOTEHEAD] is not None:
                             n.notehead = note_info[NOTEHEAD]
                         chord_notes.append(n)
 
                 chord = percussion.PercussionChord(chord_notes)
-                chord.stemDirection = (
-                    STEM_DIRECTION_UP  # Chord의 모든 노트의 꼬리 방향을 위로 설정
-                )
-                drum_track.append(chord)
+                # Chord의 모든 노트의 꼬리 방향을 위로 설정
+                chord.stemDirection = STEM_DIRECTION_UP
+                measure.append(chord)
+
+            drum_track.append(measure)
 
         # Score에 Drum Track 추가
         score.insert(0, drum_track)
